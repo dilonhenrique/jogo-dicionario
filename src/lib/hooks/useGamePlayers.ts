@@ -26,7 +26,7 @@ export function useGamePlayers() {
   }
 
   function checkoutRoundPoints(round: WordRound) {
-    const { word, guesses } = round;
+    const { word, fakes: guesses } = round;
 
     for (const voter of word.votes) {
       increasePointToPlayer(voter.id);

@@ -7,16 +7,17 @@ export type GameConfig = {
 }
 
 export type WordDefinition = {
+  id: string;
   label: string;
   definition: string;
   votes: User[];
 }
 
-export type WordGuess = WordDefinition & {
+export type FakeWord = WordDefinition & {
   author: User;
 }
 
 export type WordRound = {
   word: WordDefinition;
-  guesses: WordGuess[];
+  fakes: FakeWord[];
 }
