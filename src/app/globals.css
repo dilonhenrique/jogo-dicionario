@@ -1,4 +1,50 @@
 @import "tailwindcss";
 @plugin '../../hero.ts';
+
 @source '../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
+
+::selection {
+  @apply bg-primary text-primary-foreground;
+}
+
+h1 {
+  @apply text-3xl font-bold;
+}
+
+h2 {
+  @apply text-2xl font-bold;
+}
+
+h3 {
+  @apply text-xl font-bold;
+}
+
+h4 {
+  @apply text-lg font-bold;
+}
+
+h5 {
+  @apply text-base font-bold;
+}
+
+h6 {
+  @apply text-sm font-bold;
+}
+
+a:not([role]):not(.underline) {
+  @apply text-primary font-semibold;
+}
+
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-width: 8px;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
