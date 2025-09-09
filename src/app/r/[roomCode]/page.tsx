@@ -3,17 +3,16 @@ import { isValidRoomCode } from "@/lib/utils/generateRoomCode";
 import { notFound } from "next/navigation";
 
 type Props = {
-  params: Promise<{
-    roomCode: string;
-  }>
+  params: Promise<{ roomCode: string }>
 }
 
 export default async function Page({ params }: Props) {
-  const isValid = isValidRoomCode((await params).roomCode);
+  const roomCode = (await params).roomCode;
+  const isValid = isValidRoomCode(roomCode);
 
   if (!isValid) notFound();
 
   return (
-    <RoomPage />
+    <RoomPage code={roomCode} />
   )
 }

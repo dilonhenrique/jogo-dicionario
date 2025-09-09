@@ -1,8 +1,6 @@
 "use client";
 
 import Container from "@/lib/components/ui/Container/Container";
-import { joinRoomChannel } from "@/lib/hooks/useRealtimeRoom";
-import { generateRoomCode } from "@/lib/utils/generateRoomCode";
 import { Button, Input } from "@heroui/react";
 
 export default function HomePage() {
@@ -18,9 +16,7 @@ export default function HomePage() {
       <Button
         color="primary"
         onPress={() => {
-          const { channel, sendMove } = joinRoomChannel(generateRoomCode());
-          console.log(channel)
-          sendMove({ said: "Oh yeah!" });
+          
         }}
       >
         Nova sala
