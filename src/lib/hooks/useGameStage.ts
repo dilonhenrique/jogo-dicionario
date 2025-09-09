@@ -1,10 +1,10 @@
 import { GameStage } from "@/types/game";
 import { useState } from "react";
 
-const stageOrder: GameStage[] = ["setup", "word_pick", "definition", "guess", "result", "finishing"];
+const stageOrder: GameStage[] = ["word_pick", "definition", "guess", "result", "finishing"];
 
 const stageValidation: Record<GameStage, () => boolean> = {
-  setup: () => true,
+  // "setup": () => true,
   word_pick: () => true,
   definition: () => true,
   guess: () => true,
@@ -13,7 +13,7 @@ const stageValidation: Record<GameStage, () => boolean> = {
 }
 
 export function useGameStage() {
-  const [currentStage, setStage] = useState<GameStage>("setup");
+  const [currentStage, setStage] = useState<GameStage>("word_pick");
 
   function goToNextStage() {
     const index = stageOrder.findIndex(s => s === currentStage);

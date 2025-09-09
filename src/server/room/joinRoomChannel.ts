@@ -11,8 +11,7 @@ export function joinRoomChannel({ code, user }: Props) {
     config: { presence: { key: user.id, enabled: true }, }
   }).subscribe(async (status) => {
     if (status !== 'SUBSCRIBED') { return }
-    const presenceTrackStatus = await channel.track({ ...user, onlineAt: new Date().toISOString() });
-    console.log(presenceTrackStatus)
+    await channel.track({ ...user, onlineAt: new Date().toISOString() });
   });
 
   return channel;

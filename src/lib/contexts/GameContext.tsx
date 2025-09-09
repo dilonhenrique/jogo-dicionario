@@ -2,7 +2,7 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, WordDefinition, WordRound } from "@/types/game";
+import { GameConfig, GameStage, SimpleWord, WordRound } from "@/types/game";
 import { useGameStage } from "../hooks/useGameStage";
 import { useGamePlayers } from "../hooks/useGamePlayers";
 import { useGameRound } from "../hooks/useGameRound";
@@ -15,7 +15,8 @@ type GameContextValue = {
   currentRound: WordRound | null;
   roundHistory: WordRound[];
   actions: {
-    setWordForNextRound: (word: WordDefinition) => void;
+    startGame: () => void;
+    setWordForNextRound: (word: SimpleWord) => void;
     addNewFakeWord: (definition: string) => void;
     vote: (definitionId: string) => void;
   }
@@ -36,8 +37,12 @@ function GameProvider({ children }: PropsWithChildren) {
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
-  function setWordForNextRound(word: WordDefinition) {
-    startNextRound({ word, fakes: [] });
+  function startGame() {
+    setStage("word_pick");
+  }
+
+  function setWordForNextRound(word: SimpleWord) {
+    startNextRound(word);
     setStage("definition");
   }
 
@@ -51,7 +56,7 @@ function GameProvider({ children }: PropsWithChildren) {
     const totalPlaying = playingPlayers.length;
     const totalFakes = currentRound.fakes.length;
 
-    if (totalFakes >= totalPlaying) {
+    if (totalPlaying > 1 && totalFakes >= totalPlaying) {
       setStage("guess");
     }
   }, [currentRound, playingPlayers, setStage])
@@ -62,7 +67,7 @@ function GameProvider({ children }: PropsWithChildren) {
     const totalPlaying = playingPlayers.length;
     const totalVotes = currentRound.word.votes.length + currentRound.fakes.reduce((acc, arr) => acc + arr.votes.length, 0);
 
-    if (totalVotes >= totalPlaying) {
+    if (totalPlaying > 1 && totalVotes >= totalPlaying) {
       setStage("result");
     }
   }, [currentRound, playingPlayers, setStage])
@@ -77,6 +82,7 @@ function GameProvider({ children }: PropsWithChildren) {
   }
 
   const actions = {
+    startGame,
     setWordForNextRound,
     addNewFakeWord,
     vote,

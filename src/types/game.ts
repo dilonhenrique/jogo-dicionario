@@ -1,15 +1,18 @@
 import { User } from "./user";
 
-export type GameStage = "setup" | "word_pick" | "definition" | "guess" | "result" | "finishing";
+export type GameStage = "word_pick" | "definition" | "guess" | "result" | "finishing";
 
 export type GameConfig = {
   maxPoints: number | null;
 }
 
-export type WordDefinition = {
-  id: string;
+export type SimpleWord = {
   label: string;
   definition: string;
+}
+
+export type WordDefinition = SimpleWord & {
+  id: string;
   votes: User[];
 }
 

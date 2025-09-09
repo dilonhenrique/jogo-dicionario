@@ -1,9 +1,11 @@
-import { useRoomChannel } from "@/lib/contexts/RoomContext"
+import { Player } from "@/types/user";
 import { Chip } from "@heroui/react";
 
-export function RoomPlayers() {
-  const { onlinePlayers: players } = useRoomChannel();
+type Props = {
+  players: Player[];
+}
 
+export function RoomPlayers({ players }: Props) {
   return <ul>
     {players.map(player =>
       <Chip

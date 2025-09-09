@@ -1,4 +1,4 @@
-import { FakeWord, WordRound } from "@/types/game";
+import { FakeWord, SimpleWord, WordRound } from "@/types/game";
 import { User } from "@/types/user";
 import { useState } from "react";
 import { v4 } from "uuid";
@@ -17,14 +17,21 @@ export function useGameRound() {
     })
   }
 
-  function startNextRound(round: WordRound) {
+  function startNextRound(word: SimpleWord) {
     setCurrentRound(current => {
       if (current) {
         console.error("Can't start a new round while current still active.");
         return current;
       }
 
-      return round;
+      return {
+        word: {
+          ...word,
+          id: v4(),
+          votes: [],
+        },
+        fakes: [],
+      };
     });
   }
 

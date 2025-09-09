@@ -10,6 +10,8 @@ type RoomChannelContextValue = {
   channel: RealtimeChannel;
   onlinePlayers: Player[];
   currentUser: User;
+  gameHasStarted: boolean;
+  startGame: () => void;
 }
 
 const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChannelContextValue);
@@ -22,6 +24,12 @@ type Props = PropsWithChildren & {
 function RoomChannelProvider({ children, code, user }: Props) {
   const [channel] = useState(joinRoomChannel({ code, user }));
   const [onlinePlayers, setPlayers] = useState<Player[]>([]);
+
+  const [gameHasStarted, setGameStarted] = useState(false);
+
+  function startGame() {
+    setGameStarted(true);
+  }
 
   useEffect(() => {
     channel.on("presence", { event: "sync" }, () => {
@@ -38,7 +46,7 @@ function RoomChannelProvider({ children, code, user }: Props) {
     return () => { }
   }, [channel])
 
-  return (<RoomChannelContext.Provider value={{ code, channel, onlinePlayers, currentUser: user }}>
+  return (<RoomChannelContext.Provider value={{ code, channel, onlinePlayers, currentUser: user, gameHasStarted, startGame }}>
     {children}
   </RoomChannelContext.Provider>)
 }
