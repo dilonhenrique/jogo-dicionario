@@ -35,5 +35,11 @@ export function useGameStage() {
     return stageValidation[stage];
   }
 
-  return { stage: currentStage, goToNextStage, reset, getValidator };
+  return {
+    stage: currentStage,
+    setStage,
+    goToNextStage,
+    reset,
+    getValidator,
+  };
 }

@@ -15,9 +15,21 @@ export function useGameRound() {
     })
   }
 
+  function startNextRound(round: WordRound) {
+    setCurrentRound(current => {
+      if (current) {
+        console.error("Can't start a new round while current still active.");
+        return current;
+      }
+
+      return round;
+    });
+  }
+
   return {
     currentRound,
     roundHistory,
+    startNextRound,
     checkoutCurrentRound,
   };
 }
