@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, PropsWithChildren, useContext, useState } from "react";
+import { createContext, PropsWithChildren, useContext } from "react";
 import { GamePlayer } from "@/types/user";
 import { GameConfig, GameStage, WordRound } from "@/types/game";
 import { useGameStage } from "../hooks/useGameStage";
 import { useGamePlayers } from "../hooks/useGamePlayers";
+import { useGameRound } from "../hooks/useGameRound";
 
 type GameContextValue = {
   stage: GameStage;
@@ -23,9 +24,7 @@ const GameContext = createContext<GameContextValue>({} as GameContextValue);
 function GameProvider({ children }: PropsWithChildren) {
   const { stage } = useGameStage();
   const { players } = useGamePlayers();
-
-  const [currentRound, setCurrentRound] = useState<WordRound | null>(null);
-  const [roundHistory, setRoundHistory] = useState<WordRound[]>([]);
+  const { currentRound, roundHistory } = useGameRound();
 
   return (<GameContext.Provider
     value={{
