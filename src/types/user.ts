@@ -6,3 +6,7 @@ export type User = {
 export type Player = User & {
   onlineAt: string | null;
 }
+
+export type GamePlayer = Player & {
+  points: number;
+}

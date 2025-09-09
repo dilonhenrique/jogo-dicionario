@@ -8,7 +8,7 @@ import { Player, User } from "@/types/user";
 type RoomChannelContextValue = {
   code: string;
   channel: RealtimeChannel;
-  players: Player[];
+  onlinePlayers: Player[];
   currentUser: User;
 }
 
@@ -21,7 +21,7 @@ type Props = PropsWithChildren & {
 
 function RoomChannelProvider({ children, code, user }: Props) {
   const [channel] = useState(joinRoomChannel({ code, user }));
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [onlinePlayers, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     channel.on("presence", { event: "sync" }, () => {
@@ -38,7 +38,7 @@ function RoomChannelProvider({ children, code, user }: Props) {
     return () => { }
   }, [channel])
 
-  return (<RoomChannelContext.Provider value={{ code, channel, players, currentUser: user }}>
+  return (<RoomChannelContext.Provider value={{ code, channel, onlinePlayers, currentUser: user }}>
     {children}
   </RoomChannelContext.Provider>)
 }
