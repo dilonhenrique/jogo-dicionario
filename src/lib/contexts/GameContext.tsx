@@ -4,6 +4,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useState } fro
 import { Player } from "@/types/user";
 import { GameConfig, GameStage, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
+import { useGameStage } from "../hooks/useGameStage";
 
 type GameContextValue = {
   stage: GameStage;
@@ -23,7 +24,7 @@ const GameContext = createContext<GameContextValue>({} as GameContextValue);
 function GameProvider({ children }: PropsWithChildren) {
   const { players: onlinePlayers } = useRoomChannel();
 
-  const [stage, setStage] = useState<GameStage>("setup");
+  const { stage } = useGameStage();
   const [players, setPlayers] = useState<Player[]>(onlinePlayers);
   const [points, setPoints] = useState<Record<string, number>>({});
 
