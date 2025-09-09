@@ -4,5 +4,5 @@ export type User = {
 }
 
 export type Player = User & {
-  onlineAt: string;
+  onlineAt: string | null;
 }

@@ -9,6 +9,7 @@ type RoomChannelContextValue = {
   code: string;
   channel: RealtimeChannel;
   players: Player[];
+  currentUser: User;
 }
 
 const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChannelContextValue);
@@ -19,29 +20,25 @@ type Props = PropsWithChildren & {
 };
 
 function RoomChannelProvider({ children, code, user }: Props) {
-  const [channel, setChannel] = useState(joinRoomChannel({ code, user }));
+  const [channel] = useState(joinRoomChannel({ code, user }));
   const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
     channel.on("presence", { event: "sync" }, () => {
-      const state = channel.presenceState(); // mapa de userId -> metas
-
-
-
-      setPlayers(Object.values(state).map(s => (s[0] as unknown as Player)))
-      // atualiza lista de jogadores online
+      const state = channel.presenceState();
+      setPlayers(Object.values(state).map(s => (s[0] as unknown as Player)));
     })
-      .on('presence', { event: 'join' }, ({ newPresences, currentPresences }) => {
+      .on('presence', { event: 'join' }, ({ currentPresences }) => {
         console.log(currentPresences as unknown as Player[])
       })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences, currentPresences }) => {
+      .on('presence', { event: 'leave' }, ({ currentPresences }) => {
         console.log(currentPresences as unknown as Player[])
       })
 
     return () => { }
   }, [channel])
 
-  return (<RoomChannelContext.Provider value={{ code, channel, players }}>
+  return (<RoomChannelContext.Provider value={{ code, channel, players, currentUser: user }}>
     {children}
   </RoomChannelContext.Provider>)
 }

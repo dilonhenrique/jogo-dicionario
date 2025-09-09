@@ -9,7 +9,7 @@ export function RoomPlayers() {
       <Chip
         key={player.id}
         variant="dot"
-        color="success"
+        color={player.onlineAt === null ? "danger" : "success"}
       >
         {player.name}
       </Chip>)}

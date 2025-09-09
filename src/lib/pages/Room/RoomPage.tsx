@@ -1,11 +1,10 @@
 "use client";
 
-import { RoomPlayers } from "@/lib/components/section/Room/RoomPlayers";
+import Room from "@/lib/components/section/Room/Room";
 import Container from "@/lib/components/ui/Container/Container"
-import { RoomChannelProvider } from "@/lib/contexts/RoomContext"
 import { User } from "@/types/user";
 import { Button, Form, Input } from "@heroui/react";
-import { useState } from "react";
+import { useLocalStorage } from "usehooks-ts";
 import { v4 } from "uuid";
 
 type Props = {
@@ -13,7 +12,7 @@ type Props = {
 }
 
 export default function RoomPage({ code }: Props) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useLocalStorage<User | null>('LOCAL_USER', null);
 
   return (
     <Container>
@@ -24,7 +23,6 @@ export default function RoomPage({ code }: Props) {
           <Form
             action={(formData) => {
               const name = formData.get("name");
-              console.log(name)
               if (typeof name === "string") {
                 setUser({ id: v4(), name })
               }
@@ -35,9 +33,7 @@ export default function RoomPage({ code }: Props) {
           </Form>
         )
         : (
-          <RoomChannelProvider code={code} user={user}>
-            <RoomPlayers />
-          </RoomChannelProvider>
+          <Room code={code} user={user} />
         )}
     </Container>
   )
