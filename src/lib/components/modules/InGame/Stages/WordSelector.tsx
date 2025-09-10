@@ -26,9 +26,7 @@ export default function WordSelector() {
     {words.map(word => (
       <Button
         key={word.label}
-        onPress={() => {
-          actions.setWordAndStartNewRound(word)
-        }}
+        onPress={() => actions.setWordAndStartNewRound(word)}
       >
         {word.label}
       </Button>

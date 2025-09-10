@@ -1,7 +1,7 @@
 import { shuffle } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
 
-export default function GuessStage() {
+export default function VoteStage() {
   const { currentRound } = useGame();
 
   if (!currentRound) return <></>;

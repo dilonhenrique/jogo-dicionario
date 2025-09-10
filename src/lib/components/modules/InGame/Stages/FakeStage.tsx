@@ -2,7 +2,7 @@ import { useGame } from "@/lib/contexts/GameContext"
 import { Button, Form, Input } from "@heroui/react";
 import { useState } from "react";
 
-export default function DefinitionStage() {
+export default function FakeStage() {
   const { currentRound, actions } = useGame();
   const [isSent, setSent] = useState(false);
 

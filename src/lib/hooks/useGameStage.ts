@@ -34,9 +34,23 @@ export function useGameStage() {
     return stageValidation[stage];
   }
 
+  function handleSetStage(stage: GameStage) {
+    let success = true;
+
+    setStage(curr => {
+      if (curr === stage) {
+        success = false;
+      }
+
+      return stage;
+    })
+
+    if (!success) return null;
+  }
+
   return {
     stage: currentStage,
-    setStage,
+    setStage: handleSetStage,
     goToNextStage,
     reset,
     getValidator,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useRoomChannel } from "../contexts/RoomContext";
 
-type ApplyFn<P> = (payload: P) => void;
+type ApplyFn<P> = (payload: P) => void | null;
 type MapFn<I, P> = (input: I) => P;
 
 type Props<I, P> = {
@@ -18,9 +18,9 @@ export function useDispatcher<I = any, P = I>({ apply, event, mapInput }: Props<
   const mapRef = useRef<MapFn<I, P> | undefined>(mapInput);
   const eventRef = useRef(event);
 
-  useEffect(() => { applyRef.current = apply; }, [apply]);
-  useEffect(() => { mapRef.current = mapInput; }, [mapInput]);
-  useEffect(() => { eventRef.current = event; }, [event]);
+  useEffect(() => { applyRef.current = apply }, [apply]);
+  useEffect(() => { mapRef.current = mapInput }, [mapInput]);
+  useEffect(() => { eventRef.current = event }, [event]);
 
   useEffect(() => {
     const event = eventRef.current;
@@ -31,8 +31,11 @@ export function useDispatcher<I = any, P = I>({ apply, event, mapInput }: Props<
 
   const dispatch = useCallback((input: I) => {
     const payload = mapRef.current ? mapRef.current(input) : (input as unknown as P);
-    applyRef.current(payload);
-    channel.send({ type: "broadcast", event: eventRef.current, payload });
+    const response = applyRef.current(payload);
+
+    if (response !== null) {
+      channel.send({ type: "broadcast", event: eventRef.current, payload });
+    }
   }, [channel]);
 
   return dispatch;

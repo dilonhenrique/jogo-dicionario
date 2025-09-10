@@ -1,8 +1,8 @@
 import { useGame } from "@/lib/contexts/GameContext"
-import DefinitionStage from "./Stages/DefinitionStage";
+import FakeStage from "./Stages/FakeStage";
 import WordSelector from "./Stages/WordSelector";
 import { PlayerList } from "../Player/PlayerList";
-import GuessStage from "./Stages/GuessStage";
+import VoteStage from "./Stages/VoteStage";
 
 export default function InGame() {
   const { stage, players } = useGame();
@@ -12,8 +12,8 @@ export default function InGame() {
       <PlayerList players={players} />
 
       {stage === "word_pick" && <WordSelector />}
-      {stage === "definition" && <DefinitionStage />}
-      {stage === "guess" && <GuessStage />}
+      {stage === "fake" && <FakeStage />}
+      {stage === "vote" && <VoteStage />}
     </div>
   )
 }
