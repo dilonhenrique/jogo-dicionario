@@ -5,11 +5,12 @@ type Props = {
   players: Player[];
 }
 
-export function RoomPlayers({ players }: Props) {
-  return <ul>
+export function PlayerList({ players }: Props) {
+  return <ul className="flex flex-col gap-2">
     {players.map(player =>
       <Chip
         key={player.id}
+        size="sm"
         variant="dot"
         color={player.onlineAt === null ? "danger" : "success"}
       >

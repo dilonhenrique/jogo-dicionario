@@ -2,11 +2,13 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, SimpleWord, WordRound } from "@/types/game";
+import { GameConfig, GameStage, SimpleWord, WordDefinition, WordRound } from "@/types/game";
 import { useGameStage } from "../hooks/useGameStage";
 import { useGamePlayers } from "../hooks/useGamePlayers";
 import { useGameRound } from "../hooks/useGameRound";
 import { useRoomChannel } from "./RoomContext";
+import { v4 } from "uuid";
+import useFirstRender from "../hooks/useFirstRender";
 
 type GameContextValue = {
   stage: GameStage;
@@ -29,7 +31,7 @@ type Props = PropsWithChildren & {
 }
 
 function GameProvider({ children, configs }: Props) {
-  const { currentUser } = useRoomChannel();
+  const { currentUser, channel } = useRoomChannel();
 
   const { stage, setStage } = useGameStage();
   const { players } = useGamePlayers();
@@ -37,13 +39,24 @@ function GameProvider({ children, configs }: Props) {
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
+  useFirstRender(() => {
+    channel.on("broadcast", { event: "start-round" }, ({ payload: { word } }) => applySetWordForNextRound(word))
+  })
+
   function startGame() {
     setStage("word_pick");
   }
 
-  function setWordForNextRound(word: SimpleWord) {
+  function applySetWordForNextRound(word: WordDefinition) {
     startNextRound(word);
     setStage("definition");
+  }
+
+  function setWordForNextRound(input: SimpleWord) {
+    const word: WordDefinition = { ...input, id: v4(), votes: [] };
+
+    applySetWordForNextRound(word);
+    channel.send({ type: "broadcast", event: "start-round", payload: { word } });
   }
 
   function addNewFakeWord(definition: string) {
@@ -92,9 +105,9 @@ function GameProvider({ children, configs }: Props) {
     value={{
       stage,
       players,
-      configs,
       currentRound,
       roundHistory,
+      configs,
       actions,
     }}
   >

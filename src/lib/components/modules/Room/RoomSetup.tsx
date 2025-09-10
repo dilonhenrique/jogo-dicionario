@@ -15,7 +15,7 @@ export default function RoomSetup({ startNewGame }: Props) {
     >
       <Input name="maxPoints" placeholder="Máximo de pontos" defaultValue="3" />
 
-      <Button>
+      <Button type="submit">
         Começar
       </Button>
     </Form>

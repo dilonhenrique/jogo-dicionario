@@ -28,6 +28,7 @@ function RoomChannelProvider({ children, code, user }: Props) {
   const [gameHasStarted, setGameStarted] = useState(false);
 
   function startGame() {
+    channel.send({ type: "broadcast", event: "start-game" });
     setGameStarted(true);
   }
 
@@ -42,6 +43,7 @@ function RoomChannelProvider({ children, code, user }: Props) {
       .on('presence', { event: 'leave' }, ({ currentPresences }) => {
         console.log(currentPresences as unknown as Player[])
       })
+      .on("broadcast", { event: "start-game" }, () => setGameStarted(true))
 
     return () => { }
   }, [channel])

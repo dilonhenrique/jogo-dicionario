@@ -2,7 +2,7 @@ import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import GameStage from "../InGame/InGame";
 import { GameProvider } from "@/lib/contexts/GameContext";
 import RoomSetup from "./RoomSetup";
-import { RoomPlayers } from "../Player/PlayerList";
+import { PlayerList } from "../Player/PlayerList";
 import { GameConfig } from "@/types/game";
 import { useState } from "react";
 
@@ -22,7 +22,7 @@ export default function Room() {
   return (
     !gameHasStarted
       ? (<>
-        <RoomPlayers players={onlinePlayers} />
+        <PlayerList players={onlinePlayers} />
         <RoomSetup startNewGame={startNewGame} />
       </>)
       : (
