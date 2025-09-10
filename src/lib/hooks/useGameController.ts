@@ -8,8 +8,16 @@ import { User } from "@/types/user";
 
 export default function useGameController() {
   const { stage, setStage } = useGameStage();
-  const { players } = useGamePlayers();
-  const { currentRound, roundHistory, startNextRound, pushFakeWord, pushVote, putCurrentRoundInHistory } = useGameRound();
+  const { players, increasePointToPlayer } = useGamePlayers();
+  const {
+    currentRound,
+    roundHistory,
+    votes,
+    startNextRound,
+    pushFakeWord,
+    pushVote,
+    putCurrentRoundInHistory,
+  } = useGameRound();
 
   const changeStage = useDispatcher<GameStage>({
     event: 'stage-change',
@@ -22,7 +30,7 @@ export default function useGameController() {
       startNextRound(word);
       setStage("fake");
     },
-    mapInput: (input) => ({ ...input, id: v4(), votes: [] }),
+    mapInput: (input) => ({ ...input, id: v4() }),
   });
 
   const checkoutCurrentRound = useDispatcher({
@@ -33,7 +41,7 @@ export default function useGameController() {
   const addFakeWordForUser = useDispatcher<{ definition: string, author: User }, FakeWord>({
     event: 'new-fake',
     apply: pushFakeWord,
-    mapInput: (input) => ({ ...input, id: v4(), votes: [] }),
+    mapInput: (input) => ({ ...input, id: v4() }),
   })
 
   const addVoteForUser = useDispatcher<{ definitionId: string, user: User }>({
@@ -41,15 +49,36 @@ export default function useGameController() {
     apply: pushVote,
   })
 
+  function calculateRoundPoints() {
+    if (currentRound) {
+      const votePairs = Array.from(votes.entries());
+
+      for (const [userId, defId] of votePairs) {
+        if (defId === currentRound.word.id) {
+          // guessed right
+          increasePointToPlayer(userId);
+        } else {
+          // guessed wrong
+          const word = currentRound.fakes.find(f => f.id === defId);
+          if (word?.author) {
+            increasePointToPlayer(word.author.id);
+          }
+        }
+      }
+    }
+  }
+
   return {
     stage,
     changeStage,
     players,
     currentRound,
     roundHistory,
+    votes,
     setWordAndStartNewRound,
     checkoutCurrentRound,
     addFakeWordForUser,
     addVoteForUser,
+    calculateRoundPoints,
   };
 }

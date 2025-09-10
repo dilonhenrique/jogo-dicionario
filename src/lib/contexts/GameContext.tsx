@@ -35,6 +35,7 @@ function GameProvider({ children, configs }: Props) {
     players,
     currentRound,
     roundHistory,
+    votes,
     setWordAndStartNewRound,
     addFakeWordForUser,
     addVoteForUser,
@@ -65,12 +66,12 @@ function GameProvider({ children, configs }: Props) {
     if (!currentRound) return;
 
     const totalPlaying = playingPlayers.length;
-    const totalVotes = currentRound.word.votes.length + currentRound.fakes.reduce((acc, arr) => acc + arr.votes.length, 0);
+    const totalVotes = votes.size;
 
     if (totalPlaying > 1 && totalVotes >= totalPlaying) {
       changeStage("blame");
     }
-  }, [currentRound, playingPlayers, changeStage])
+  }, [currentRound, playingPlayers.length, votes.size, changeStage])
 
   useEffect(() => {
     if (stage === "fake") checkIfEverybodyAddedFake();

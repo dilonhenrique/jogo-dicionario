@@ -13,7 +13,7 @@ export type SimpleWord = {
 
 export type WordDictionary = SimpleWord & {
   id: string;
-  votes: User[];
+  // votes: User[];
 }
 
 export type FakeWord = Omit<WordDictionary, "label"> & {

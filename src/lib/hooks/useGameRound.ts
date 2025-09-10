@@ -1,10 +1,12 @@
 import { FakeWord, WordDictionary, WordRound } from "@/types/game";
 import { User } from "@/types/user";
 import { useState } from "react";
+import { useMap } from "usehooks-ts";
 
 export function useGameRound() {
   const [currentRound, setCurrentRound] = useState<WordRound | null>(null);
   const [roundHistory, setRoundHistory] = useState<WordRound[]>([]);
+  const [voteMap, voteActions] = useMap<string, string>();
 
   function putCurrentRoundInHistory() {
     setCurrentRound(current => {
@@ -34,6 +36,7 @@ export function useGameRound() {
     });
 
     if (!success) return null;
+    voteActions.reset();
   }
 
   function pushFakeWord(fake: FakeWord) {
@@ -64,50 +67,24 @@ export function useGameRound() {
   }
 
   function pushVote({ definitionId, user }: { definitionId: string, user: User }) {
-    let success = true;
+    if (!currentRound) {
+      console.warn("Can't vote in a not started round.");
+      return null;
+    }
 
-    setCurrentRound(current => {
-      if (!current) {
-        console.warn("Can't vote in a not started round.");
-        success = false;
-        return current;
-      }
+    // already voted in this definition
+    if (voteMap.get(user.id) === definitionId) {
+      console.log("Vote already computed.");
+      return null;
+    }
 
-      const isRightVote = current.word.id === definitionId;
-
-      const votes = isRightVote ? current.word.votes : current.fakes.flatMap(f => f.votes);
-      const existingVote = votes.find(u => u.id === user.id);
-
-      if (existingVote) {
-        console.log("Vote already computed.");
-        success = false;
-        return current;
-      }
-
-      return {
-        ...current,
-        word: isRightVote
-          ? { ...current.word, votes: [...current.word.votes, user] }
-          : current.word,
-        fakes: isRightVote
-          ? [...current.fakes]
-          : current.fakes.map((guess) => (
-            {
-              ...guess,
-              votes: guess.id === definitionId
-                ? [...guess.votes, user]
-                : guess.votes
-            }
-          ))
-      };
-    });
-
-    if (!success) return null;
+    voteActions.set(user.id, definitionId);
   }
 
   return {
     currentRound,
     roundHistory,
+    votes: voteMap,
     startNextRound,
     putCurrentRoundInHistory,
     pushFakeWord,
