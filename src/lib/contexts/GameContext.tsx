@@ -22,13 +22,13 @@ type GameContextValue = {
   }
 }
 
-const defaultConfig: GameConfig = {
-  maxPoints: 5,
-}
-
 const GameContext = createContext<GameContextValue>({} as GameContextValue);
 
-function GameProvider({ children }: PropsWithChildren) {
+type Props = PropsWithChildren & {
+  configs: GameConfig;
+}
+
+function GameProvider({ children, configs }: Props) {
   const { currentUser } = useRoomChannel();
 
   const { stage, setStage } = useGameStage();
@@ -92,7 +92,7 @@ function GameProvider({ children }: PropsWithChildren) {
     value={{
       stage,
       players,
-      configs: defaultConfig,
+      configs,
       currentRound,
       roundHistory,
       actions,

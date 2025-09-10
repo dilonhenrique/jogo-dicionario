@@ -1,9 +1,9 @@
 import { useGame } from "@/lib/contexts/GameContext"
-import DefinitionStage from "./DefinitionStage";
-import WordSelector from "./WordSelector";
-import { RoomPlayers } from "../RoomPlayers";
+import DefinitionStage from "./Stages/DefinitionStage";
+import WordSelector from "./Stages/WordSelector";
+import { RoomPlayers } from "../Player/PlayerList";
 
-export default function GameState() {
+export default function InGame() {
   const { stage, players } = useGame();
 
   return (

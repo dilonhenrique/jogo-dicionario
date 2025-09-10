@@ -1,6 +1,6 @@
 "use client";
 
-import GameRoom from "@/lib/components/section/Room/GameRoom";
+import Room from "@/lib/components/modules/Room/Room";
 import Container from "@/lib/components/ui/Container/Container"
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { User } from "@/types/user";
@@ -38,7 +38,7 @@ export default function RoomPage({ code }: Props) {
           )
           : (
             <RoomChannelProvider code={code} user={user}>
-              <GameRoom />
+              <Room />
             </RoomChannelProvider>
           )}
     </Container>
