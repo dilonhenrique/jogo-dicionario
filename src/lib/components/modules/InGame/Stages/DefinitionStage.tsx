@@ -16,7 +16,7 @@ export default function DefinitionStage() {
         const definition = formData.get("definition");
 
         if (typeof definition === "string") {
-          actions.addNewFakeWord(definition);
+          actions.addFakeWord(definition);
           setSent(true);
         }
       }}

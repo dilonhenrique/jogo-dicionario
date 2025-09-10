@@ -2,13 +2,9 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, SimpleWord, WordDefinition, WordRound } from "@/types/game";
-import { useGameStage } from "../hooks/useGameStage";
-import { useGamePlayers } from "../hooks/useGamePlayers";
-import { useGameRound } from "../hooks/useGameRound";
+import { GameConfig, GameStage, SimpleWord, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
-import { v4 } from "uuid";
-import useFirstRender from "../hooks/useFirstRender";
+import useGameController from "../hooks/useGameController";
 
 type GameContextValue = {
   stage: GameStage;
@@ -18,8 +14,8 @@ type GameContextValue = {
   roundHistory: WordRound[];
   actions: {
     startGame: () => void;
-    setWordForNextRound: (word: SimpleWord) => void;
-    addNewFakeWord: (definition: string) => void;
+    setWordAndStartNewRound: (word: SimpleWord) => void;
+    addFakeWord: (definition: string) => void;
     vote: (definitionId: string) => void;
   }
 }
@@ -31,36 +27,27 @@ type Props = PropsWithChildren & {
 }
 
 function GameProvider({ children, configs }: Props) {
-  const { currentUser, channel } = useRoomChannel();
+  const { currentUser } = useRoomChannel();
 
-  const { stage, setStage } = useGameStage();
-  const { players } = useGamePlayers();
-  const { currentRound, roundHistory, startNextRound, addNewFake, voteInDefinition } = useGameRound();
+  const {
+    stage,
+    changeStage,
+    players,
+    currentRound,
+    roundHistory,
+    setWordAndStartNewRound,
+    addFakeWordForUser,
+    addVoteForUser,
+  } = useGameController();
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
-  useFirstRender(() => {
-    channel.on("broadcast", { event: "start-round" }, ({ payload: { word } }) => applySetWordForNextRound(word))
-  })
-
   function startGame() {
-    setStage("word_pick");
+    changeStage("word_pick");
   }
 
-  function applySetWordForNextRound(word: WordDefinition) {
-    startNextRound(word);
-    setStage("definition");
-  }
-
-  function setWordForNextRound(input: SimpleWord) {
-    const word: WordDefinition = { ...input, id: v4(), votes: [] };
-
-    applySetWordForNextRound(word);
-    channel.send({ type: "broadcast", event: "start-round", payload: { word } });
-  }
-
-  function addNewFakeWord(definition: string) {
-    addNewFake({ definition, author: currentUser, });
+  function addFakeWord(definition: string) {
+    addFakeWordForUser({ definition, author: currentUser, });
   }
 
   const checkIfEverybodyAddedFake = useCallback(() => {
@@ -70,9 +57,9 @@ function GameProvider({ children, configs }: Props) {
     const totalFakes = currentRound.fakes.length;
 
     if (totalPlaying > 1 && totalFakes >= totalPlaying) {
-      setStage("guess");
+      changeStage("vote");
     }
-  }, [currentRound, playingPlayers, setStage])
+  }, [currentRound, playingPlayers, changeStage])
 
   const checkIfEverybodyVoted = useCallback(() => {
     if (!currentRound) return;
@@ -81,23 +68,23 @@ function GameProvider({ children, configs }: Props) {
     const totalVotes = currentRound.word.votes.length + currentRound.fakes.reduce((acc, arr) => acc + arr.votes.length, 0);
 
     if (totalPlaying > 1 && totalVotes >= totalPlaying) {
-      setStage("result");
+      changeStage("blame");
     }
-  }, [currentRound, playingPlayers, setStage])
+  }, [currentRound, playingPlayers, changeStage])
 
   useEffect(() => {
-    if (stage === "definition") checkIfEverybodyAddedFake();
-    if (stage === "guess") checkIfEverybodyVoted();
+    if (stage === "fake") checkIfEverybodyAddedFake();
+    if (stage === "vote") checkIfEverybodyVoted();
   }, [checkIfEverybodyAddedFake, checkIfEverybodyVoted, stage])
 
   function vote(definitionId: string) {
-    voteInDefinition({ definitionId, user: currentUser });
+    addVoteForUser({ definitionId, user: currentUser });
   }
 
   const actions = {
     startGame,
-    setWordForNextRound,
-    addNewFakeWord,
+    setWordAndStartNewRound,
+    addFakeWord,
     vote,
   }
 

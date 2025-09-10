@@ -27,7 +27,7 @@ export default function WordSelector() {
       <Button
         key={word.label}
         onPress={() => {
-          actions.setWordForNextRound(word)
+          actions.setWordAndStartNewRound(word)
         }}
       >
         {word.label}

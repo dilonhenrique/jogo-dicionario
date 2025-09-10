@@ -1,6 +1,6 @@
 import { User } from "./user";
 
-export type GameStage = "word_pick" | "definition" | "guess" | "result" | "finishing";
+export type GameStage = "word_pick" | "fake" | "vote" | "blame" | "finishing";
 
 export type GameConfig = {
   maxPoints: number | null;
@@ -11,16 +11,16 @@ export type SimpleWord = {
   definition: string;
 }
 
-export type WordDefinition = SimpleWord & {
+export type WordDictionary = SimpleWord & {
   id: string;
   votes: User[];
 }
 
-export type FakeWord = WordDefinition & {
+export type FakeWord = Omit<WordDictionary, "label"> & {
   author: User;
 }
 
 export type WordRound = {
-  word: WordDefinition;
+  word: WordDictionary;
   fakes: FakeWord[];
 }

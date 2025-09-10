@@ -1,24 +1,12 @@
-import { FakeWord, SimpleWord, WordDefinition, WordRound } from "@/types/game";
+import { FakeWord, WordDictionary, WordRound } from "@/types/game";
 import { User } from "@/types/user";
 import { useState } from "react";
-import { v4 } from "uuid";
-import { useRoomChannel } from "../contexts/RoomContext";
-import useFirstRender from "./useFirstRender";
 
 export function useGameRound() {
   const [currentRound, setCurrentRound] = useState<WordRound | null>(null);
   const [roundHistory, setRoundHistory] = useState<WordRound[]>([]);
 
-  const { channel } = useRoomChannel();
-
-  useFirstRender(() => {
-    channel
-      .on("broadcast", { event: "checkout-round" }, applyCheckoutCurrentRound)
-      .on("broadcast", { event: "new-fake" }, ({ payload: { fake } }) => applyAddNewFake(fake))
-      .on("broadcast", { event: "new-vote" }, ({ payload: { vote } }) => applyVoteInDefinition(vote))
-  })
-
-  function applyCheckoutCurrentRound() {
+  function putCurrentRoundInHistory() {
     setCurrentRound(current => {
       if (current) {
         setRoundHistory(history => ([...history, current]));
@@ -28,12 +16,7 @@ export function useGameRound() {
     })
   }
 
-  function checkoutCurrentRound() {
-    applyCheckoutCurrentRound();
-    channel.send({ type: "broadcast", event: "checkout-round" });
-  }
-
-  function startNextRound(word: WordDefinition) {
+  function startNextRound(word: WordDictionary) {
     const definition = {
       word,
       fakes: [],
@@ -49,7 +32,7 @@ export function useGameRound() {
     });
   }
 
-  function applyAddNewFake(fake: Omit<FakeWord, "label">) {
+  function pushFakeWord(fake: FakeWord) {
     setCurrentRound(current => {
       if (!current) {
         console.error("Can't add a guess to a not started round.");
@@ -63,19 +46,7 @@ export function useGameRound() {
     });
   }
 
-  function addNewFake({ author, definition }: { definition: string, author: User }) {
-    const fake: Omit<FakeWord, "label"> = {
-      id: v4(),
-      author,
-      definition,
-      votes: [],
-    };
-
-    applyAddNewFake(fake);
-    channel.send({ type: "broadcast", event: "new-fake", payload: { fake } });
-  }
-
-  function applyVoteInDefinition({ definitionId, user }: { definitionId: string, user: User }) {
+  function pushVote({ definitionId, user }: { definitionId: string, user: User }) {
     setCurrentRound(current => {
       if (!current) {
         console.error("Can't vote in a not started round.");
@@ -103,17 +74,12 @@ export function useGameRound() {
     });
   }
 
-  function voteInDefinition(vote: { definitionId: string, user: User }) {
-    applyVoteInDefinition(vote);
-    channel.send({ type: "broadcast", event: "new-vote", payload: { vote } });
-  }
-
   return {
     currentRound,
     roundHistory,
     startNextRound,
-    checkoutCurrentRound,
-    addNewFake,
-    voteInDefinition,
+    putCurrentRoundInHistory,
+    pushFakeWord,
+    pushVote,
   };
 }
