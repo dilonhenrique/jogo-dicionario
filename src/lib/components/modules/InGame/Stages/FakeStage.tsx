@@ -20,6 +20,7 @@ function FakeStage() {
       }}
     >
       <Textarea
+        size="lg"
         name="definition"
         placeholder="Escreva uma definição"
         isDisabled={isSent}
@@ -28,7 +29,7 @@ function FakeStage() {
       />
 
       <div className="flex gap-2">
-        <Button type="submit" isDisabled={isSent} color="primary">Enviar</Button>
+        <Button type="submit" isDisabled={isSent || value.length <= 5} color="primary">Enviar</Button>
         {/* TODO: tirar do "banco" */}
         {isSent && <Button onPress={() => setSent(false)}>Mudar</Button>}
       </div>
