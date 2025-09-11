@@ -25,15 +25,18 @@ export default function RoomPage({ code }: Props) {
         : user === null
           ? (
             <Form
+              className="flex flex-col"
               action={(formData) => {
                 const name = formData.get("name");
                 if (typeof name === "string") {
+                  // TODO: setar isHost como true quando estiver criando sala
                   setUser({ id: v4(), name, isHost: false })
                 }
               }}
             >
+              <h5>Identifique-se</h5>
               <Input name="name" placeholder="Seu nome" />
-              <Button type="submit">Entrar</Button>
+              <Button type="submit" color="primary">Entrar</Button>
             </Form>
           )
           : (
