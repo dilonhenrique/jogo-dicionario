@@ -37,7 +37,7 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
       {enableMaxPoints &&
         <Input name="maxPoints" label="Máximo de pontos" defaultValue={DEFAULT_CONFIG.maxPoints.toString()} />}
 
-      <Button type="submit" isDisabled={onlinePlayers.length < 0} color="primary">
+      <Button type="submit" isDisabled={onlinePlayers.length < 2} color="primary">
         Começar
       </Button>
     </Form>

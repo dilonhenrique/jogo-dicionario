@@ -3,10 +3,11 @@ import InGame from "../InGame/InGame";
 import { GameProvider } from "@/lib/contexts/GameContext";
 import RoomSetup from "./RoomSetup";
 import { PlayerList } from "../Player/PlayerList";
-import { GameConfig, GameState } from "@/types/game";
+import { GameConfig, GameState, WordDictionary } from "@/types/game";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 import { Divider } from "@heroui/react";
+import { getNewRandomWord } from "@/server/dictionary/dictionaty.service";
 
 export default function Room() {
   const { channel, gameHasStarted, onlinePlayers, startGame, currentUser } = useRoomChannel();
@@ -14,17 +15,24 @@ export default function Room() {
   const [configs, setConfigs] = useState(DEFAULT_CONFIG);
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
-  function hostStartNewGame(config: Partial<GameConfig>) {
-    console.log(config);
-    setConfigs((current) => ({ ...current, ...config }));
-    setInitialState((current) =>
-    ({
-      ...current,
-      stage: config.enableHostChooseWord === true
-        ? "word_pick"
-        : "fake"
-    })
-    );
+  async function hostStartNewGame(config: Partial<GameConfig>) {
+    const finalConfig: GameConfig = { ...DEFAULT_CONFIG, ...config };
+    setConfigs(finalConfig);
+
+    const hostChooseWord = finalConfig.enableHostChooseWord === true;
+    let word: WordDictionary | null = null;
+
+    if (!hostChooseWord) {
+      word = await getNewRandomWord();
+    }
+
+    setInitialState((current) => (
+      {
+        ...current,
+        stage: hostChooseWord ? "word_pick" : "fake",
+        currentRound: word ? { word, fakes: [] } : undefined,
+      }
+    ));
 
     startGame();
   }

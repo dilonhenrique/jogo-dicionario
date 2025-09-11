@@ -6,7 +6,6 @@ import { GameConfig, GameStage, GameState, SimpleWord, WordRound } from "@/types
 import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
-import { getNewRandomWord } from "@/server/dictionary/dictionaty.service";
 
 type GameContextValue = {
   stage: GameStage;
@@ -15,7 +14,6 @@ type GameContextValue = {
   currentRound: WordRound | null;
   roundHistory: WordRound[];
   actions: {
-    startGame: () => void;
     setWordAndStartNewRound: (word: SimpleWord) => void;
     addFakeWord: (definition: string) => void;
     vote: (definitionId: string) => void;
@@ -40,7 +38,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     currentRound,
     roundHistory,
     votes,
-    setWordAndStartFakeStage,
+    setWordAndStartFakeStage: setWordAndStartNewRound,
     addFakeWordForUser,
     addVoteForUser,
     calculateRoundPoints,
@@ -64,7 +62,6 @@ function GameProvider({ children, configs, initialState }: Props) {
       { event: 'state-request' },
       ({ payload }) => {
         if (userLatest.current.isHost) {
-          console.log("sending game state");
           channel.send({
             type: "broadcast", event: "game-state", payload: {
               to: payload.replyTo,
@@ -75,15 +72,6 @@ function GameProvider({ children, configs, initialState }: Props) {
       })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel])
-
-  async function startGame() {
-    if (configs.enableHostChooseWord) {
-      changeStage("word_pick");
-    } else {
-      const newWord = await getNewRandomWord();
-      setWordAndStartFakeStage(newWord);
-    }
-  }
 
   function addFakeWord(definition: string) {
     addFakeWordForUser({ definition, author: currentUser, });
@@ -122,8 +110,7 @@ function GameProvider({ children, configs, initialState }: Props) {
   }
 
   const actions = {
-    startGame,
-    setWordAndStartNewRound: setWordAndStartFakeStage,
+    setWordAndStartNewRound,
     addFakeWord,
     vote,
     checkoutCurrentRound,
