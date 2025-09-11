@@ -3,6 +3,8 @@ import { GamePlayer, User } from "./user";
 export type GameStage = "word_pick" | "fake" | "vote" | "blame" | "finishing";
 
 export type GameConfig = {
+  enableHostChooseWord: boolean;
+  enableMaxPoints: boolean;
   maxPoints: number;
 }
 

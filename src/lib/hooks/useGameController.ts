@@ -1,19 +1,20 @@
-import { FakeWord, GameStage, GameState, SimpleWord, WordDictionary } from "@/types/game";
+import { FakeWord, GameConfig, GameStage, GameState, SimpleWord, WordDictionary } from "@/types/game";
 import { useDispatcher } from "./useDispatcher";
 import { useGamePlayers } from "./useGamePlayers";
 import { useGameRound } from "./useGameRound";
 import { useGameStage } from "./useGameStage";
 import { v4 } from "uuid";
 import { User } from "@/types/user";
+import { getNewRandomWord } from "@/server/dictionary/dictionaty.service";
 
-export default function useGameController(initialState?: Partial<GameState>) {
+export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { stage, setStage } = useGameStage(initialState?.stage);
   const { players, increasePointToPlayer } = useGamePlayers(initialState?.players);
   const {
     currentRound,
     roundHistory,
     votes,
-    startNextRound,
+    setNewWordAndResetVotes,
     pushFakeWord,
     pushVote,
     putCurrentRoundInHistory,
@@ -28,20 +29,30 @@ export default function useGameController(initialState?: Partial<GameState>) {
     apply: setStage,
   });
 
-  const setWordAndStartNewRound = useDispatcher<SimpleWord, WordDictionary>({
-    event: 'start-round',
+  const setWordAndStartFakeStage = useDispatcher<SimpleWord, WordDictionary>({
+    event: 'set-word',
     apply: (word) => {
-      startNextRound(word);
+      setNewWordAndResetVotes(word);
       setStage("fake");
     },
     mapInput: (input) => ({ ...input, id: v4() }),
   });
 
+  async function startNewRound() {
+    if (configs.enableHostChooseWord) {
+      setStage("word_pick");
+    } else {
+      const newWord = await getNewRandomWord();
+      setNewWordAndResetVotes(newWord);
+      setStage("fake");
+    }
+  }
+
   const checkoutCurrentRound = useDispatcher({
     event: 'checkout-round',
     apply: () => {
       putCurrentRoundInHistory();
-      setStage("word_pick");
+      startNewRound();
     },
   }) as () => void;
 
@@ -82,7 +93,7 @@ export default function useGameController(initialState?: Partial<GameState>) {
     currentRound,
     roundHistory,
     votes,
-    setWordAndStartNewRound,
+    setWordAndStartFakeStage,
     checkoutCurrentRound,
     addFakeWordForUser,
     addVoteForUser,

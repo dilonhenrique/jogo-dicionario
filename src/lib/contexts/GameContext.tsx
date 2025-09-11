@@ -6,6 +6,7 @@ import { GameConfig, GameStage, GameState, SimpleWord, WordRound } from "@/types
 import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
+import { getNewRandomWord } from "@/server/dictionary/dictionaty.service";
 
 type GameContextValue = {
   stage: GameStage;
@@ -39,12 +40,12 @@ function GameProvider({ children, configs, initialState }: Props) {
     currentRound,
     roundHistory,
     votes,
-    setWordAndStartNewRound,
+    setWordAndStartFakeStage,
     addFakeWordForUser,
     addVoteForUser,
     calculateRoundPoints,
     checkoutCurrentRound,
-  } = useGameController(initialState);
+  } = useGameController(configs, initialState);
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
@@ -75,8 +76,13 @@ function GameProvider({ children, configs, initialState }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel])
 
-  function startGame() {
-    changeStage("word_pick");
+  async function startGame() {
+    if (configs.enableHostChooseWord) {
+      changeStage("word_pick");
+    } else {
+      const newWord = await getNewRandomWord();
+      setWordAndStartFakeStage(newWord);
+    }
   }
 
   function addFakeWord(definition: string) {
@@ -117,7 +123,7 @@ function GameProvider({ children, configs, initialState }: Props) {
 
   const actions = {
     startGame,
-    setWordAndStartNewRound,
+    setWordAndStartNewRound: setWordAndStartFakeStage,
     addFakeWord,
     vote,
     checkoutCurrentRound,

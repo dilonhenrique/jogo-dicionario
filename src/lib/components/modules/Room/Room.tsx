@@ -6,6 +6,7 @@ import { PlayerList } from "../Player/PlayerList";
 import { GameConfig, GameState } from "@/types/game";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
+import { Divider } from "@heroui/react";
 
 export default function Room() {
   const { channel, gameHasStarted, onlinePlayers, startGame, currentUser } = useRoomChannel();
@@ -13,8 +14,18 @@ export default function Room() {
   const [configs, setConfigs] = useState(DEFAULT_CONFIG);
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
-  function hostStartNewGame(config: GameConfig) {
+  function hostStartNewGame(config: Partial<GameConfig>) {
+    console.log(config);
     setConfigs((current) => ({ ...current, ...config }));
+    setInitialState((current) =>
+    ({
+      ...current,
+      stage: config.enableHostChooseWord === true
+        ? "word_pick"
+        : "fake"
+    })
+    );
+
     startGame();
   }
 
@@ -38,12 +49,20 @@ export default function Room() {
         </GameProvider>
       )
       : (
-        <>
-          <PlayerList players={onlinePlayers} />
-
+        <div className="flex flex-col gap-4">
           {currentUser.isHost && <RoomSetup hostStartNewGame={hostStartNewGame} />}
-          {!currentUser.isHost && <p>Aguardando host iniciar partida...</p>}
-        </>
+          {!currentUser.isHost &&
+            <>
+              <p className="text-foreground-400">Aguardando host iniciar partida...</p>
+              <Divider className="mt-2" />
+            </>
+          }
+
+          <div className="flex flex-col gap-2">
+            <h5>Participantes</h5>
+            <PlayerList players={onlinePlayers} />
+          </div>
+        </div>
       )
   );
 }

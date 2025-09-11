@@ -24,7 +24,7 @@ export function useGameRound(initialState: Props) {
     })
   }
 
-  function startNextRound(word: WordDictionary) {
+  function setNewWordAndResetVotes(word: WordDictionary) {
     let success = true;
     const definition = {
       word,
@@ -91,7 +91,7 @@ export function useGameRound(initialState: Props) {
     currentRound,
     roundHistory,
     votes: voteMap,
-    startNextRound,
+    setNewWordAndResetVotes,
     putCurrentRoundInHistory,
     pushFakeWord,
     pushVote,
