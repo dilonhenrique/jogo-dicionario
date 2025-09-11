@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useRoomChannel } from "../contexts/RoomContext";
 import { GamePlayer } from "@/types/user";
 
-export function useGamePlayers() {
+export function useGamePlayers(initialPlayers?: GamePlayer[]) {
   const { onlinePlayers } = useRoomChannel();
-  const [players, setPlayers] = useState<GamePlayer[]>(onlinePlayers.map(p => ({ ...p, points: 0 })));
+  const [players, setPlayers] = useState<GamePlayer[]>(initialPlayers ?? onlinePlayers.map(p => ({ ...p, points: 0 })));
 
   useEffect(() => {
     setPlayers(players => players.map(

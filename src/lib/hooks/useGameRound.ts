@@ -3,10 +3,16 @@ import { User } from "@/types/user";
 import { useState } from "react";
 import { useMap } from "usehooks-ts";
 
-export function useGameRound() {
-  const [currentRound, setCurrentRound] = useState<WordRound | null>(null);
-  const [roundHistory, setRoundHistory] = useState<WordRound[]>([]);
-  const [voteMap, voteActions] = useMap<string, string>();
+type Props = {
+  currentRound?: WordRound | null;
+  roundHistory?: WordRound[];
+  votes?: [string, string][];
+}
+
+export function useGameRound(initialState: Props) {
+  const [currentRound, setCurrentRound] = useState<WordRound | null>(initialState.currentRound ?? null);
+  const [roundHistory, setRoundHistory] = useState<WordRound[]>(initialState.roundHistory ?? []);
+  const [voteMap, voteActions] = useMap<string, string>(initialState.votes);
 
   function putCurrentRoundInHistory() {
     setCurrentRound(current => {

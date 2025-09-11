@@ -28,7 +28,7 @@ export default function RoomPage({ code }: Props) {
               action={(formData) => {
                 const name = formData.get("name");
                 if (typeof name === "string") {
-                  setUser({ id: v4(), name })
+                  setUser({ id: v4(), name, isHost: false })
                 }
               }}
             >
@@ -37,7 +37,8 @@ export default function RoomPage({ code }: Props) {
             </Form>
           )
           : (
-            <RoomChannelProvider code={code} user={user}>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            <RoomChannelProvider code={code} user={user} setUser={setUser as any}>
               <Room />
             </RoomChannelProvider>
           )}

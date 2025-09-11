@@ -7,12 +7,19 @@ type Props = {
 }
 
 export function joinRoomChannel({ code, user }: Props) {
-  const channel = supabase.channel(`room:${code}`, {
-    config: { presence: { key: user.id, enabled: true }, }
-  }).subscribe(async (status) => {
-    if (status !== 'SUBSCRIBED') { return }
-    await channel.track({ ...user, onlineAt: new Date().toISOString() });
-  });
+  const channel = supabase
+    .channel(`room:${code}`, {
+      config: { presence: { key: user.id, enabled: true }, }
+    })
+    .subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await channel.track({
+          ...user,
+          isHost: false,
+          onlineAt: new Date().toISOString(),
+        });
+      }
+    });
 
   return channel;
 }

@@ -2,9 +2,10 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, SimpleWord, WordRound } from "@/types/game";
+import { GameConfig, GameStage, GameState, SimpleWord, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
+import { useLatest } from "../hooks/useLatest";
 
 type GameContextValue = {
   stage: GameStage;
@@ -24,10 +25,11 @@ const GameContext = createContext<GameContextValue>({} as GameContextValue);
 
 type Props = PropsWithChildren & {
   configs: GameConfig;
+  initialState?: Partial<GameState>;
 }
 
-function GameProvider({ children, configs }: Props) {
-  const { currentUser } = useRoomChannel();
+function GameProvider({ children, configs, initialState }: Props) {
+  const { currentUser, channel } = useRoomChannel();
 
   const {
     stage,
@@ -39,9 +41,36 @@ function GameProvider({ children, configs }: Props) {
     setWordAndStartNewRound,
     addFakeWordForUser,
     addVoteForUser,
-  } = useGameController();
+  } = useGameController(initialState);
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
+
+  const userLatest = useLatest(currentUser);
+  const gameState = useLatest<GameState>({
+    players,
+    stage,
+    currentRound,
+    roundHistory,
+    votes: Array.from(votes.entries()),
+  })
+
+  useEffect(() => {
+    channel.on(
+      'broadcast',
+      { event: 'state-request' },
+      ({ payload }) => {
+        if (userLatest.current.isHost) {
+          console.log("sending game state");
+          channel.send({
+            type: "broadcast", event: "game-state", payload: {
+              to: payload.replyTo,
+              ...gameState.current,
+            }
+          })
+        }
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channel])
 
   function startGame() {
     changeStage("word_pick");
@@ -71,7 +100,7 @@ function GameProvider({ children, configs }: Props) {
     if (totalPlaying > 1 && totalVotes >= totalPlaying) {
       changeStage("blame");
     }
-  }, [currentRound, playingPlayers.length, votes.size, changeStage])
+  }, [currentRound, playingPlayers, votes, changeStage])
 
   useEffect(() => {
     if (stage === "fake") checkIfEverybodyAddedFake();

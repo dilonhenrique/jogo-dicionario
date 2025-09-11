@@ -1,4 +1,4 @@
-import { User } from "./user";
+import { GamePlayer, User } from "./user";
 
 export type GameStage = "word_pick" | "fake" | "vote" | "blame" | "finishing";
 
@@ -23,4 +23,12 @@ export type FakeWord = Omit<WordDictionary, "label"> & {
 export type WordRound = {
   word: WordDictionary;
   fakes: FakeWord[];
+}
+
+export type GameState = {
+  players: GamePlayer[];
+  stage: GameStage;
+  currentRound: WordRound | null;
+  roundHistory: WordRound[];
+  votes: [string, string][];
 }

@@ -1,4 +1,4 @@
-import { FakeWord, GameStage, SimpleWord, WordDictionary } from "@/types/game";
+import { FakeWord, GameStage, GameState, SimpleWord, WordDictionary } from "@/types/game";
 import { useDispatcher } from "./useDispatcher";
 import { useGamePlayers } from "./useGamePlayers";
 import { useGameRound } from "./useGameRound";
@@ -6,9 +6,9 @@ import { useGameStage } from "./useGameStage";
 import { v4 } from "uuid";
 import { User } from "@/types/user";
 
-export default function useGameController() {
-  const { stage, setStage } = useGameStage();
-  const { players, increasePointToPlayer } = useGamePlayers();
+export default function useGameController(initialState?: Partial<GameState>) {
+  const { stage, setStage } = useGameStage(initialState?.stage);
+  const { players, increasePointToPlayer } = useGamePlayers(initialState?.players);
   const {
     currentRound,
     roundHistory,
@@ -17,7 +17,11 @@ export default function useGameController() {
     pushFakeWord,
     pushVote,
     putCurrentRoundInHistory,
-  } = useGameRound();
+  } = useGameRound({
+    currentRound: initialState?.currentRound,
+    roundHistory: initialState?.roundHistory,
+    votes: initialState?.votes,
+  });
 
   const changeStage = useDispatcher<GameStage>({
     event: 'stage-change',

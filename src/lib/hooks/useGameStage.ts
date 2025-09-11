@@ -11,8 +11,8 @@ const stageValidation: Record<GameStage, () => boolean> = {
   finishing: () => true,
 }
 
-export function useGameStage() {
-  const [currentStage, setStage] = useState<GameStage>("word_pick");
+export function useGameStage(initialStage: GameStage = "word_pick") {
+  const [currentStage, setStage] = useState<GameStage>(initialStage);
 
   function goToNextStage() {
     const index = stageOrder.findIndex(s => s === currentStage);

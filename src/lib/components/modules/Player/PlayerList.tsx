@@ -15,6 +15,7 @@ export function PlayerList({ players }: Props) {
         color={player.onlineAt === null ? "danger" : "success"}
       >
         {player.name}
+        {player.isHost && "(Host)"}
       </Chip>)}
   </ul>
 } 
