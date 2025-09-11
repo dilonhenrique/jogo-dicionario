@@ -19,7 +19,7 @@ export default function InGame() {
 
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
-      {stage === "vote" && <VoteStage />}
+      {(stage === "vote" || stage === "blame") && <VoteStage />}
     </div>
   )
 }

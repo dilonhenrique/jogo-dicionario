@@ -1,11 +1,11 @@
 import { shuffle } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { Button, Form, Radio, RadioGroup } from "@heroui/react";
+import { Button, cn, Form, Radio, RadioGroup } from "@heroui/react";
 
 export default function VoteStage() {
   const { currentUser } = useRoomChannel();
-  const { currentRound, actions } = useGame();
+  const { currentRound, actions, stage, players } = useGame();
 
   if (!currentRound) return <></>;
 
@@ -13,6 +13,8 @@ export default function VoteStage() {
     currentRound.word,
     ...currentRound.fakes.filter(w => w.author.id !== currentUser.id)
   ];
+
+  const isBlame = stage === "blame";
 
   return (
     <Form
@@ -27,14 +29,31 @@ export default function VoteStage() {
       <h3>{currentRound.word.label}</h3>
 
       <RadioGroup name="vote">
+        {/* shuffle just once */}
         {shuffle(allDefinitions).map(word => (
-          <Radio key={word.id} value={word.id}>
+          <Radio
+            key={word.id}
+            value={word.id}
+            classNames={{ base: cn(isBlame && word.id === currentRound.word.id && "bg-primary") }}
+            isDisabled={isBlame}
+          >
             {word.definition}
           </Radio>
         ))}
       </RadioGroup>
 
-      <Button type="submit">Votar</Button>
+      <ul>
+        {isBlame && players.map((player => {
+          return (
+            <li key={player.id}>
+              <b>{player.name}:</b> {player.points} pts.
+            </li>
+          )
+        }))}
+      </ul>
+
+      {!isBlame && <Button type="submit">Votar</Button>}
+      {isBlame && <Button onPress={() => actions.checkoutCurrentRound()}>Seguir</Button>}
     </Form>
   )
 }

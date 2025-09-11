@@ -39,8 +39,11 @@ export default function useGameController(initialState?: Partial<GameState>) {
 
   const checkoutCurrentRound = useDispatcher({
     event: 'checkout-round',
-    apply: putCurrentRoundInHistory,
-  });
+    apply: () => {
+      putCurrentRoundInHistory();
+      setStage("word_pick");
+    },
+  }) as () => void;
 
   const addFakeWordForUser = useDispatcher<{ definition: string, author: User }, FakeWord>({
     event: 'new-fake',

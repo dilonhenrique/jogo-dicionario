@@ -18,6 +18,7 @@ type GameContextValue = {
     setWordAndStartNewRound: (word: SimpleWord) => void;
     addFakeWord: (definition: string) => void;
     vote: (definitionId: string) => void;
+    checkoutCurrentRound: () => void;
   }
 }
 
@@ -41,6 +42,8 @@ function GameProvider({ children, configs, initialState }: Props) {
     setWordAndStartNewRound,
     addFakeWordForUser,
     addVoteForUser,
+    calculateRoundPoints,
+    checkoutCurrentRound,
   } = useGameController(initialState);
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
@@ -98,9 +101,10 @@ function GameProvider({ children, configs, initialState }: Props) {
     const totalVotes = votes.size;
 
     if (totalPlaying > 1 && totalVotes >= totalPlaying) {
+      calculateRoundPoints();
       changeStage("blame");
     }
-  }, [currentRound, playingPlayers, votes, changeStage])
+  }, [currentRound, playingPlayers, votes, changeStage, calculateRoundPoints])
 
   useEffect(() => {
     if (stage === "fake") checkIfEverybodyAddedFake();
@@ -116,6 +120,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     setWordAndStartNewRound,
     addFakeWord,
     vote,
+    checkoutCurrentRound,
   }
 
   return (<GameContext.Provider
