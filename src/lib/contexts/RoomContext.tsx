@@ -80,7 +80,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
           isHost: true,
         });
       })
-      .on("broadcast", { event: "start-game" }, () => setGameStarted(true))
       .on("broadcast", { event: "state-request" }, ({ payload }) => {
         if (latestIsHost.current) {
           channel.send({
@@ -110,7 +109,7 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
   }, [channel, code, user.id]);
 
   const startGame = () => {
-    channel!.send({ type: "broadcast", event: "start-game" });
+    // channel!.send({ type: "broadcast", event: "start-game" });
     setGameStarted(true);
   };
 

@@ -68,14 +68,21 @@ export default function Room() {
   }
 
   useEffect(() => {
-    channel?.on('broadcast', { event: 'game-state' }, ({ payload }) => {
-      const { to, ...gameState } = payload || {};
-
-      if (to === currentUser.id) {
-        setInitialState(gameState);
+    channel
+      ?.on('broadcast', { event: 'game-state' }, ({ payload }) => {
+        const { to, ...gameState } = payload || {};
+        console.log(payload);
+        if (to === currentUser.id) {
+          setInitialState(gameState);
+          startGame();
+        }
+      })
+      .on("broadcast", { event: "start-game" }, ({ payload }) => {
+        setConfigs((curr) => ({ ...curr, ...payload.configs }));
+        setInitialState((curr) => ({ ...curr, ...payload.initialState }));
         startGame();
-      }
-    })
+      })
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channel])
 

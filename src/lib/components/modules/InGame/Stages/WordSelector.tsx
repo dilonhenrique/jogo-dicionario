@@ -31,7 +31,7 @@ export default function WordSelector() {
     {isHost && words.map(word => (
       <Button
         key={word.label}
-        onPress={() => actions.setWordAndStartNewRound(word)}
+        onPress={() => actions.setWordAndStartFakeStage(word)}
       >
         {word.label}
       </Button>

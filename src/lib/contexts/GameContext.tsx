@@ -6,6 +6,7 @@ import { GameConfig, GameStage, GameState, SimpleWord, WordRound } from "@/types
 import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
+import useFirstRender from "../hooks/useFirstRender";
 
 type GameContextValue = {
   stage: GameStage;
@@ -14,7 +15,7 @@ type GameContextValue = {
   currentRound: WordRound | null;
   roundHistory: WordRound[];
   actions: {
-    setWordAndStartNewRound: (word: SimpleWord) => void;
+    setWordAndStartFakeStage: (word: SimpleWord) => void;
     addFakeWord: (definition: string) => void;
     vote: (definitionId: string) => void;
     checkoutCurrentRound: () => void;
@@ -38,7 +39,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     currentRound,
     roundHistory,
     votes,
-    setWordAndStartFakeStage: setWordAndStartNewRound,
+    setWordAndStartFakeStage,
     addFakeWordForUser,
     addVoteForUser,
     calculateRoundPoints,
@@ -54,6 +55,14 @@ function GameProvider({ children, configs, initialState }: Props) {
     currentRound,
     roundHistory,
     votes: Array.from(votes.entries()),
+  })
+
+  useFirstRender(() => {
+    channel.send({
+      type: "broadcast",
+      event: "start-game",
+      payload: { configs, initialState },
+    })
   })
 
   useEffect(() => {
@@ -110,7 +119,7 @@ function GameProvider({ children, configs, initialState }: Props) {
   }
 
   const actions = {
-    setWordAndStartNewRound,
+    setWordAndStartFakeStage,
     addFakeWord,
     vote,
     checkoutCurrentRound,
