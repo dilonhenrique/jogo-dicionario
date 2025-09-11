@@ -31,6 +31,36 @@ export default function Room() {
         ...current,
         stage: hostChooseWord ? "word_pick" : "fake",
         currentRound: word ? { word, fakes: [] } : undefined,
+        players: [
+          {
+            id: "123456",
+            isHost: true,
+            onlineAt: new Date().toISOString(),
+            name: "Antonio",
+            points: 6,
+          },
+          {
+            id: "5654654",
+            isHost: false,
+            onlineAt: new Date().toISOString(),
+            name: "Zulmira",
+            points: 3,
+          },
+          {
+            id: "654984",
+            isHost: false,
+            onlineAt: new Date().toISOString(),
+            name: "Maria",
+            points: 2,
+          },
+          {
+            id: "4654894",
+            isHost: false,
+            onlineAt: new Date().toISOString(),
+            name: "Francisco",
+            points: 3,
+          }
+        ]
       }
     ));
 
