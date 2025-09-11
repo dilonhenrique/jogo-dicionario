@@ -2,15 +2,15 @@ import { GameConfig } from "@/types/game";
 import { Button, Form, Input } from "@heroui/react";
 
 type Props = {
-  startNewGame: (config: GameConfig) => void;
+  hostStartNewGame: (config: GameConfig) => void;
 }
 
-export default function RoomSetup({ startNewGame }: Props) {
+export default function RoomSetup({ hostStartNewGame }: Props) {
   return (
     <Form
       action={(formData) => {
         const data = Object.fromEntries(formData);
-        startNewGame(data as unknown as GameConfig);
+        hostStartNewGame(data as unknown as GameConfig);
       }}
     >
       <Input name="maxPoints" placeholder="Máximo de pontos" defaultValue="3" />

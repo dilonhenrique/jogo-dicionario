@@ -83,7 +83,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
       .on("broadcast", { event: "start-game" }, () => setGameStarted(true))
       .on("broadcast", { event: "state-request" }, ({ payload }) => {
         if (latestIsHost.current) {
-          console.log("seding room state", latestGameStarted.current)
           channel.send({
             type: "broadcast",
             event: "room-state",
@@ -95,9 +94,7 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
         }
       })
       .on("broadcast", { event: "room-state" }, ({ payload }) => {
-        console.log("room state", payload);
         if (payload.to === user.id && typeof payload?.gameHasStarted === "boolean") {
-          console.log("receiving room state");
           setGameStarted(payload.gameHasStarted);
         }
       });

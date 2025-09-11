@@ -16,7 +16,7 @@ export default function Room() {
   const [configs, setConfigs] = useState(defaultConfig);
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
-  function startNewGame(config: GameConfig) {
+  function hostStartNewGame(config: GameConfig) {
     setConfigs({ ...defaultConfig, ...config });
     startGame();
   }
@@ -25,7 +25,6 @@ export default function Room() {
     channel?.on('broadcast', { event: 'game-state' }, ({ payload }) => {
       const { to, ...gameState } = payload || {};
 
-      console.log("game state recebido", to === currentUser.id);
       if (to === currentUser.id) {
         setInitialState(gameState);
         startGame();
@@ -44,7 +43,9 @@ export default function Room() {
       : (
         <>
           <PlayerList players={onlinePlayers} />
-          <RoomSetup startNewGame={startNewGame} />
+
+          {currentUser.isHost && <RoomSetup hostStartNewGame={hostStartNewGame} />}
+          {!currentUser.isHost && <p>Aguarde...</p>}
         </>
       )
   );

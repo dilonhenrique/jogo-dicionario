@@ -1,4 +1,5 @@
 import { useGame } from "@/lib/contexts/GameContext"
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { SimpleWord } from "@/types/game";
 import { Button } from "@heroui/react";
 
@@ -18,12 +19,16 @@ const words: SimpleWord[] = [
 ]
 
 export default function WordSelector() {
+  const { currentUser } = useRoomChannel();
   const { actions } = useGame();
 
-  return <div>
-    <h3>Escolha uma palavra:</h3>
+  const isHost = currentUser.isHost;
 
-    {words.map(word => (
+  return <div>
+    {isHost && <h3>Escolha uma palavra:</h3>}
+    {!isHost && <h3>Aguarde a palavra...</h3>}
+
+    {isHost && words.map(word => (
       <Button
         key={word.label}
         onPress={() => actions.setWordAndStartNewRound(word)}
