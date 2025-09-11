@@ -1,3 +1,5 @@
+import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { GameConfig } from "@/types/game";
 import { Button, Form, Input } from "@heroui/react";
 
@@ -6,6 +8,8 @@ type Props = {
 }
 
 export default function RoomSetup({ hostStartNewGame }: Props) {
+  const { onlinePlayers } = useRoomChannel();
+
   return (
     <Form
       action={(formData) => {
@@ -13,9 +17,9 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
         hostStartNewGame(data as unknown as GameConfig);
       }}
     >
-      <Input name="maxPoints" placeholder="Máximo de pontos" defaultValue="3" />
+      <Input name="maxPoints" label="Máximo de pontos" defaultValue={DEFAULT_CONFIG.maxPoints.toString()} />
 
-      <Button type="submit">
+      <Button type="submit" isDisabled={onlinePlayers.length < 2}>
         Começar
       </Button>
     </Form>

@@ -5,19 +5,16 @@ import RoomSetup from "./RoomSetup";
 import { PlayerList } from "../Player/PlayerList";
 import { GameConfig, GameState } from "@/types/game";
 import { useEffect, useState } from "react";
-
-const defaultConfig: GameConfig = {
-  maxPoints: 5,
-}
+import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 
 export default function Room() {
   const { channel, gameHasStarted, onlinePlayers, startGame, currentUser } = useRoomChannel();
 
-  const [configs, setConfigs] = useState(defaultConfig);
+  const [configs, setConfigs] = useState(DEFAULT_CONFIG);
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
   function hostStartNewGame(config: GameConfig) {
-    setConfigs({ ...defaultConfig, ...config });
+    setConfigs((current) => ({ ...current, ...config }));
     startGame();
   }
 
@@ -45,7 +42,7 @@ export default function Room() {
           <PlayerList players={onlinePlayers} />
 
           {currentUser.isHost && <RoomSetup hostStartNewGame={hostStartNewGame} />}
-          {!currentUser.isHost && <p>Aguarde...</p>}
+          {!currentUser.isHost && <p>Aguardando host iniciar partida...</p>}
         </>
       )
   );

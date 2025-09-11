@@ -1,6 +1,6 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Player } from "@/types/user";
-import { Chip, Tooltip } from "@heroui/react";
+import { Chip, cn, Tooltip } from "@heroui/react";
 import { sortBy } from "lodash";
 import { Star } from "lucide-react";
 import { useMemo } from "react";
@@ -19,7 +19,7 @@ export function PlayerList({ players, disableMeFirst }: Props) {
   const list = useMemo(() => {
     if (disableMeFirst || !me) return sortBy(players, "name");
 
-    return [me, ...sortBy(others, "name")]
+    return [me, ...sortBy(others, "name")];
   }, [disableMeFirst, players, me, others]);
 
   return <ul className="flex flex-col gap-2">
@@ -28,9 +28,10 @@ export function PlayerList({ players, disableMeFirst }: Props) {
         key={player.id}
         variant="dot"
         color={player.onlineAt === null ? "danger" : "success"}
+        classNames={{ base: cn(player.id === currentUser.id && "border-foreground/50") }}
         endContent={player.isHost && (
           <Tooltip content="Host">
-            <Star size={14} className="ms-1" />
+            <Star size={14} className="mx-1" />
           </Tooltip>
         )}
       >

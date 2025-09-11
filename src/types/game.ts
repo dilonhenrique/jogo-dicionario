@@ -3,7 +3,7 @@ import { GamePlayer, User } from "./user";
 export type GameStage = "word_pick" | "fake" | "vote" | "blame" | "finishing";
 
 export type GameConfig = {
-  maxPoints: number | null;
+  maxPoints: number;
 }
 
 export type SimpleWord = {
