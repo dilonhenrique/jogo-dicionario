@@ -1,7 +1,8 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Player } from "@/types/user";
-import { Chip } from "@heroui/react";
+import { Chip, Tooltip } from "@heroui/react";
 import { sortBy } from "lodash";
+import { Star } from "lucide-react";
 import { useMemo } from "react";
 
 type Props = {
@@ -25,12 +26,15 @@ export function PlayerList({ players, disableMeFirst }: Props) {
     {list.map(player =>
       <Chip
         key={player.id}
-        size="sm"
         variant="dot"
         color={player.onlineAt === null ? "danger" : "success"}
+        endContent={player.isHost && (
+          <Tooltip content="Host">
+            <Star size={14} className="ms-1" />
+          </Tooltip>
+        )}
       >
         {player.name}
-        {player.isHost && "(Host)"}
       </Chip>)}
   </ul>
 } 
