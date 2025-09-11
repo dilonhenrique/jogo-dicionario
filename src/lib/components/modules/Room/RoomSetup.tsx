@@ -2,6 +2,7 @@ import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { GameConfig } from "@/types/game";
 import { Button, Form, Input, Switch } from "@heroui/react";
+import { Info } from "lucide-react";
 import { useState } from "react";
 
 type Props = {
@@ -15,7 +16,7 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
 
   return (
     <Form
-      className="border border-foreground-100 p-4 pb-6 rounded-xl gap-4"
+      className="border border-foreground-100 p-4 rounded-xl gap-4"
       action={(formData) => {
         const data = Object.fromEntries(formData);
         hostStartNewGame({
@@ -37,9 +38,16 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
       {enableMaxPoints &&
         <Input name="maxPoints" label="Máximo de pontos" defaultValue={DEFAULT_CONFIG.maxPoints.toString()} />}
 
-      <Button type="submit" isDisabled={onlinePlayers.length < 0} color="primary">
-        Começar
-      </Button>
+      <div className="flex flex-col gap-2 items-start">
+        <Button type="submit" isDisabled={onlinePlayers.length < 0} color="primary">
+          Começar
+        </Button>
+
+        <p className="text-xs text-foreground-500 italic flex items-center gap-1 ms-1">
+          <Info size={14} />
+          Depois de iniciada a partida, nenhum jogador pode entrar
+        </p>
+      </div>
     </Form>
   )
 }

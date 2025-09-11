@@ -17,7 +17,7 @@ export default function RoomPage({ code }: Props) {
   const isClient = useIsClient();
 
   return (
-    <Container>
+    <Container className="relative">
       <h1 className="!text-large text-primary my-2">Sala #{code}</h1>
 
       <Divider className="mb-2" />
@@ -37,7 +37,7 @@ export default function RoomPage({ code }: Props) {
               }}
             >
               <h5>Identifique-se</h5>
-              <Input name="name" placeholder="Seu nome" />
+              <Input name="name" placeholder="Seu nome" size="lg" variant="underlined" />
               <Button type="submit" color="primary">Entrar</Button>
             </Form>
           )
