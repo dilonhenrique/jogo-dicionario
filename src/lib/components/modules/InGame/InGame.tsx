@@ -7,7 +7,7 @@ import PlayersDrawer from "./PlayersDrawer";
 
 export default function InGame() {
   const { currentUser } = useRoomChannel();
-  const { stage, players } = useGame();
+  const { stage, players, currentRound } = useGame();
 
 
   if (!currentUser.isHost && !players.some(p => p.id === currentUser.id)) {
@@ -15,12 +15,19 @@ export default function InGame() {
   }
 
   return (
-    <div>
+    <>
+      {currentRound && (
+        <div className="flex flex-col">
+          <p className="text-foreground-500 text-small">A palavra é...</p>
+          <h2>{currentRound.word.label}</h2>
+        </div>
+      )}
+
+      <PlayersDrawer />
+
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
       {(stage === "vote" || stage === "blame") && <VoteStage />}
-
-      <PlayersDrawer />
-    </div>
+    </>
   )
 }

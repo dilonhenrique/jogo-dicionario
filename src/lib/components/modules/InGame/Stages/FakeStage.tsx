@@ -8,9 +8,7 @@ export default function FakeStage() {
 
   if (!currentRound) return <p>Sem palavra definida</p>;
 
-  return <div>
-    <h2>{currentRound.word.label}</h2>
-
+  return (
     <Form
       action={(formData) => {
         const definition = formData.get("definition");
@@ -24,5 +22,5 @@ export default function FakeStage() {
       <Input name="definition" placeholder="Escreva uma definição" isReadOnly={isSent} />
       <Button type="submit" isDisabled={isSent}>Enviar</Button>
     </Form>
-  </div>
+  )
 }

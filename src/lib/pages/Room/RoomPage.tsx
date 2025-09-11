@@ -4,7 +4,7 @@ import Room from "@/lib/components/modules/Room/Room";
 import Container from "@/lib/components/ui/Container/Container"
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { User } from "@/types/user";
-import { Button, Form, Input, Spinner } from "@heroui/react";
+import { Button, Divider, Form, Input, Spinner } from "@heroui/react";
 import { useIsClient, useLocalStorage } from "usehooks-ts";
 import { v4 } from "uuid";
 
@@ -18,7 +18,9 @@ export default function RoomPage({ code }: Props) {
 
   return (
     <Container>
-      <h1>Sala #{code}</h1>
+      <h1 className="!text-large text-primary my-2">Sala #{code}</h1>
+
+      <Divider className="mb-2" />
 
       {!isClient
         ? <Spinner />
