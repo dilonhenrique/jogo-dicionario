@@ -2,19 +2,25 @@ import { shuffle } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Button, cn, Form, Radio, RadioGroup } from "@heroui/react";
+import { useMemo } from "react";
 
 export default function VoteStage() {
   const { currentUser } = useRoomChannel();
   const { currentRound, actions, stage, players } = useGame();
 
-  if (!currentRound) return <></>;
-
-  const allDefinitions = [
-    currentRound.word,
-    ...currentRound.fakes.filter(w => w.author.id !== currentUser.id)
-  ];
-
   const isBlame = stage === "blame";
+
+  const allDefinitions = useMemo(() => {
+    if (!currentRound) return [];
+
+    return shuffle([
+      currentRound.word,
+      ...currentRound.fakes.filter(w => w.author.id !== currentUser.id)
+    ])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!currentRound) return <></>;
 
   return (
     <Form
@@ -29,8 +35,7 @@ export default function VoteStage() {
       <h3>{currentRound.word.label}</h3>
 
       <RadioGroup name="vote">
-        {/* shuffle just once */}
-        {shuffle(allDefinitions).map(word => (
+        {allDefinitions.map(word => (
           <Radio
             key={word.id}
             value={word.id}
