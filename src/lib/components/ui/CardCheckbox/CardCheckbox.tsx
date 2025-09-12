@@ -34,6 +34,11 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
   const isMyWord = "author" in word && word.author.id === currentUser.id;
   const votedForThis = searchVoteForWord(word.id);
 
+  const showSuccess = showBlame && isRight;
+  const showDanger = showBlame && !isRight && isSelected;
+
+  const isDisabled = showBlame || hasVoted;
+
   return (
     <Checkbox
       key={word.id}
@@ -41,7 +46,7 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
       {...props}
       isSelected={isSelected}
       // onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
-      isDisabled={showBlame || hasVoted}
+      isDisabled={isDisabled}
       isReadOnly={isMyWord}
       size="lg"
       classNames={{
@@ -50,10 +55,15 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
           "justify-between items-start relative transition-all",
           "border-foreground-100 border rounded-2xl",
           isSelected && "border-primary",
-          showBlame && isRight && isSelected && "bg-success-100 border-success",
-          showBlame && isRight && !isSelected && "bg-danger-100 border-danger",
+          showSuccess && "bg-success-100 border-success",
+          showDanger && "bg-danger-100 border-danger",
         ),
-        wrapper: cn("m-1", showBlame && "opacity-60"),
+        wrapper: cn(
+          "m-1",
+          isDisabled && "opacity-60",
+          showSuccess && "after:bg-success",
+          showDanger && "after:bg-danger",
+        ),
       }}
     >
       {isMyWord && (
@@ -70,7 +80,7 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
       {showBlame && votedForThis.length > 0 && (
         <ul className="ps-2 mt-2">
           {votedForThis.map(player => (
-            <li key={player.id} className="text-sm flex justify-center gap-2">
+            <li key={player.id} className="text-sm flex justify-start items-center gap-2">
               <Check size={16} />
               {player.name} votou
             </li>

@@ -7,12 +7,12 @@ import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
 
 export default function VoteStage() {
   const { currentUser } = useRoomChannel();
-  const { currentRound, actions, stage } = useGame();
+  const { currentRound, actions, stage, votes } = useGame();
 
-  const [value, setValue] = useState<string>();
+  const [value, setValue] = useState(votes.get(currentUser.id));
   const [hasVoted, setVoted] = useState(false);
 
-  const isBlame = stage === "blame";
+  const showBlame = stage === "blame";
 
   const allDefinitions = useMemo(() => {
     if (!currentRound) return [];
@@ -43,21 +43,23 @@ export default function VoteStage() {
             word={word}
             isSelected={value === word.id}
             onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
-            showBlame={isBlame}
+            showBlame={showBlame}
             number={index + 1}
             hasVoted={hasVoted}
           />
         ))}
       </div>
 
-      {!isBlame && (
+      {!showBlame && (
         <Button type="submit" color="primary" isDisabled={hasVoted}>
           Votar
         </Button>
         // TODO: mudar voto (remover depois votar de novo)
       )}
-      {isBlame && currentUser.isHost && (
-        <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>Seguir</Button>
+      {showBlame && currentUser.isHost && (
+        <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>
+          Iniciar próxima rodada
+        </Button>
       )}
     </Form>
   )
