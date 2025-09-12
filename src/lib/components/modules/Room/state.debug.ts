@@ -1,7 +1,7 @@
 import { GameState, WordDictionary } from "@/types/game";
 
 type Testing = "none" | "fake" | "vote" | "blame-wrong" | "blame-right";
-const testing: Testing = "blame-wrong";
+const testing: Testing = "none";
 
 // FOR TESTS: initialStates
 export function getInitialState(hostChooseWord: boolean, word: WordDictionary | null, myId: string) {
