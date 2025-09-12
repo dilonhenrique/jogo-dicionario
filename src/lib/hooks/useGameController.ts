@@ -42,7 +42,7 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     if (configs.enableHostChooseWord) {
       setStage("word_pick");
     } else {
-      const newWord = await getNewRandomWord();
+      const [newWord] = await getNewRandomWord();
       setNewWordAndResetVotes(newWord);
       setStage("fake");
     }

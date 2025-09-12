@@ -1,40 +1,45 @@
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { SimpleWord } from "@/types/game";
-import { Button } from "@heroui/react";
-
-const words: SimpleWord[] = [
-  {
-    label: "Defenestrar",
-    definition: "Ato de jogar alguém ou algo pela janela"
-  },
-  {
-    label: "Volátil",
-    definition: "Contrário de volto cá tia"
-  },
-  {
-    label: "Euforia",
-    definition: "Alegria incontrolável"
-  },
-]
+import useFirstRender from "@/lib/hooks/useFirstRender";
+import { getNewRandomWord } from "@/server/dictionary/dictionaty.service";
+import { WordDictionary } from "@/types/game";
+import { Button, Spinner } from "@heroui/react";
+import { useState, useTransition } from "react";
 
 export default function WordSelector() {
   const { currentUser } = useRoomChannel();
   const { actions } = useGame();
 
+  const [words, setWords] = useState<WordDictionary[]>([]);
+  const [isLoading, startLoad] = useTransition();
+
   const isHost = currentUser.isHost;
 
-  return <div>
-    {isHost && <h3>Escolha uma palavra:</h3>}
-    {!isHost && <h3>Aguarde a palavra...</h3>}
+  useFirstRender(() => {
+    startLoad(async () => {
+      const words = await getNewRandomWord(4);
+      setWords(words);
+    })
+  })
 
-    {isHost && words.map(word => (
-      <Button
-        key={word.label}
-        onPress={() => actions.setWordAndStartFakeStage(word)}
-      >
-        {word.label}
-      </Button>
-    ))}
-  </div>
+  return (
+    <div className="flex flex-col gap-2">
+      {isHost && <h3>Escolha uma palavra:</h3>}
+      {!isHost && <h3>Aguarde a palavra...</h3>}
+
+      {isHost && (
+        <>
+          {isLoading && <Spinner />}
+          {!isLoading && words.map(word => (
+            <Button
+              key={word.label}
+              onPress={() => actions.setWordAndStartFakeStage(word)}
+            >
+              {word.label}
+            </Button>
+          ))}
+        </>
+      )}
+    </div>
+  );
 }

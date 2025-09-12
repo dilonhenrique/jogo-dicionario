@@ -23,7 +23,7 @@ export default function Room() {
     let word: WordDictionary | null = null;
 
     if (!hostChooseWord) {
-      word = await getNewRandomWord();
+      [word] = await getNewRandomWord();
     }
 
     setInitialState((current) => (
@@ -41,7 +41,6 @@ export default function Room() {
     channel
       ?.on('broadcast', { event: 'game-state' }, ({ payload }) => {
         const { to, ...gameState } = payload || {};
-        console.log(payload);
         if (to === currentUser.id) {
           setInitialState(gameState);
           startGame();

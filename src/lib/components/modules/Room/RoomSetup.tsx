@@ -43,7 +43,7 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
           Começar
         </Button>
 
-        <p className="text-xs text-foreground-500 italic flex items-center gap-1 ms-1">
+        <p className="text-xs text-foreground-500 italic flex items-start gap-1 ms-1">
           <Info size={14} />
           Depois de iniciada a partida, nenhum jogador pode entrar
         </p>
