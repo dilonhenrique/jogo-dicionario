@@ -8,10 +8,11 @@ import { Check } from "lucide-react";
 type Props = CheckboxProps & {
   word: WordDictionary | FakeWord;
   number: number;
+  hasVoted: boolean;
   showBlame?: boolean;
 }
 
-export default function CardCheckbox({ word, isSelected, showBlame, number, ...props }: Props) {
+export default function CardCheckbox({ word, isSelected, showBlame, number, hasVoted, ...props }: Props) {
   const { currentUser } = useRoomChannel();
   const { currentRound, players, votes } = useGame();
 
@@ -40,7 +41,7 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, ...p
       {...props}
       isSelected={isSelected}
       // onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
-      isDisabled={showBlame}
+      isDisabled={showBlame || hasVoted}
       isReadOnly={isMyWord}
       size="lg"
       classNames={{

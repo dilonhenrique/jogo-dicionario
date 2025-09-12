@@ -8,7 +8,9 @@ import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
 export default function VoteStage() {
   const { currentUser } = useRoomChannel();
   const { currentRound, actions, stage } = useGame();
+
   const [value, setValue] = useState<string>();
+  const [hasVoted, setVoted] = useState(false);
 
   const isBlame = stage === "blame";
 
@@ -30,6 +32,7 @@ export default function VoteStage() {
         e.preventDefault();
         if (typeof value === "string") {
           actions.vote(value);
+          setVoted(true);
         }
       }}
     >
@@ -42,11 +45,17 @@ export default function VoteStage() {
             onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
             showBlame={isBlame}
             number={index + 1}
+            hasVoted={hasVoted}
           />
         ))}
       </div>
 
-      {!isBlame && <Button type="submit" color="primary">Votar</Button>}
+      {!isBlame && (
+        <Button type="submit" color="primary" isDisabled={hasVoted}>
+          Votar
+        </Button>
+        // TODO: mudar voto (remover depois votar de novo)
+      )}
       {isBlame && currentUser.isHost && (
         <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>Seguir</Button>
       )}
