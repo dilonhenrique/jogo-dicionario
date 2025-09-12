@@ -45,7 +45,7 @@ export function PlayerList({ players, sortMode = "me-first" }: Props) {
           </Chip>
 
           {"points" in player &&
-            <p className="text-primary">{player.points} pts</p>
+            <p className="text-primary">{player.points as number} pts</p>
           }
         </li>
       ))}
