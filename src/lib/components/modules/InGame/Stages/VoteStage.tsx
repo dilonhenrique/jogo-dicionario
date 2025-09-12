@@ -1,22 +1,24 @@
-import { shuffle } from "lodash";
+import { sortBy } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { Button, cn, Form, Radio, RadioGroup } from "@heroui/react";
-import { useMemo } from "react";
+import { Button, Form } from "@heroui/react";
+import { useMemo, useState } from "react";
+import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
 
 export default function VoteStage() {
   const { currentUser } = useRoomChannel();
-  const { currentRound, actions, stage, players } = useGame();
+  const { currentRound, actions, stage } = useGame();
+  const [value, setValue] = useState<string>();
 
   const isBlame = stage === "blame";
 
   const allDefinitions = useMemo(() => {
     if (!currentRound) return [];
 
-    return shuffle([
+    return sortBy([
       currentRound.word,
       ...currentRound.fakes.filter(w => w.author.id !== currentUser.id)
-    ])
+    ], "id");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -24,41 +26,30 @@ export default function VoteStage() {
 
   return (
     <Form
-      action={(formData) => {
-        const { vote } = Object.fromEntries(formData);
-
-        if (typeof vote === "string") {
-          actions.vote(vote);
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (typeof value === "string") {
+          actions.vote(value);
         }
       }}
     >
-      <h3>{currentRound.word.label}</h3>
-
-      <RadioGroup name="vote">
-        {allDefinitions.map(word => (
-          <Radio
+      <div className="w-full flex flex-col gap-6 my-4">
+        {allDefinitions.map((word, index) => (
+          <CardCheckbox
             key={word.id}
-            value={word.id}
-            classNames={{ base: cn(isBlame && word.id === currentRound.word.id && "bg-primary") }}
-            isDisabled={isBlame}
-          >
-            {word.definition}
-          </Radio>
+            word={word}
+            isSelected={value === word.id}
+            onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
+            showBlame={isBlame}
+            number={index + 1}
+          />
         ))}
-      </RadioGroup>
+      </div>
 
-      <ul>
-        {isBlame && players.map((player => {
-          return (
-            <li key={player.id}>
-              <b>{player.name}:</b> {player.points} pts.
-            </li>
-          )
-        }))}
-      </ul>
-
-      {!isBlame && <Button type="submit">Votar</Button>}
-      {isBlame && <Button onPress={() => actions.checkoutCurrentRound()}>Seguir</Button>}
+      {!isBlame && <Button type="submit" color="primary">Votar</Button>}
+      {isBlame && currentUser.isHost && (
+        <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>Seguir</Button>
+      )}
     </Form>
   )
 }

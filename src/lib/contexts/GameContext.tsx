@@ -2,7 +2,7 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, GameState, SimpleWord, WordRound } from "@/types/game";
+import { GameConfig, GameStage, GameState, GameVotes, SimpleWord, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
@@ -11,6 +11,7 @@ import useFirstRender from "../hooks/useFirstRender";
 type GameContextValue = {
   stage: GameStage;
   players: GamePlayer[];
+  votes: GameVotes;
   configs: GameConfig;
   currentRound: WordRound | null;
   roundHistory: WordRound[];
@@ -129,6 +130,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     value={{
       stage,
       players,
+      votes,
       currentRound,
       roundHistory,
       configs,

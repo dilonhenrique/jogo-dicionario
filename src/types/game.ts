@@ -34,3 +34,5 @@ export type GameState = {
   roundHistory: WordRound[];
   votes: [string, string][];
 }
+
+export type GameVotes = Omit<Map<string, string>, "set" | "clear" | "delete">;
