@@ -29,86 +29,88 @@ export default function Room() {
     setInitialState((current) => (
       {
         ...current,
-        stage: "blame",
-        currentRound: word ? {
-          word, fakes: [
-            {
-              id: "123456",
-              author: {
-                id: "123456",
-                isHost: true,
-                onlineAt: new Date().toISOString(),
-                name: "Antonio",
-                points: 6,
-              },
-              definition: "Sorvete"
-            },
-            {
-              id: "d4as8d49as8",
-              author: {
-                id: "5654654",
-                isHost: false,
-                onlineAt: new Date().toISOString(),
-                name: "Zulmira",
-                points: 3,
-              },
-              definition: "Goiaba"
-            },
-            {
-              id: "46das4d6a",
-              author: {
-                id: "654984",
-                isHost: false,
-                onlineAt: new Date().toISOString(),
-                name: "Maria",
-                points: 2,
-              },
-              definition: "Azeitona"
-            },
-            {
-              id: "asdasg",
-              author: {
-                id: "4654894",
-                isHost: false,
-                onlineAt: new Date().toISOString(),
-                name: "Francisco",
-                points: 3,
-              },
-              definition: "Maçã"
-            }
-          ]
-        } : undefined,
-        players: [
-          {
-            id: "123456",
-            isHost: true,
-            onlineAt: new Date().toISOString(),
-            name: "Antonio",
-            points: 6,
-          },
-          {
-            id: "5654654",
-            isHost: false,
-            onlineAt: new Date().toISOString(),
-            name: "Zulmira",
-            points: 3,
-          },
-          {
-            id: "654984",
-            isHost: false,
-            onlineAt: new Date().toISOString(),
-            name: "Maria",
-            points: 2,
-          },
-          {
-            id: "4654894",
-            isHost: false,
-            onlineAt: new Date().toISOString(),
-            name: "Francisco",
-            points: 3,
-          }
-        ],
-        votes: [["4654894", "asdasg"]]
+        stage: hostChooseWord ? "word_pick" : "fake",
+        currentRound: word ? { word, fakes: [] } : undefined,
+        // stage: "blame",
+        // currentRound: word ? {
+        //   word, fakes: [
+        //     {
+        //       id: "123456",
+        //       author: {
+        //         id: "123456",
+        //         isHost: true,
+        //         onlineAt: new Date().toISOString(),
+        //         name: "Antonio",
+        //         points: 6,
+        //       },
+        //       definition: "Sorvete"
+        //     },
+        //     {
+        //       id: "d4as8d49as8",
+        //       author: {
+        //         id: "5654654",
+        //         isHost: false,
+        //         onlineAt: new Date().toISOString(),
+        //         name: "Zulmira",
+        //         points: 3,
+        //       },
+        //       definition: "Goiaba"
+        //     },
+        //     {
+        //       id: "46das4d6a",
+        //       author: {
+        //         id: "654984",
+        //         isHost: false,
+        //         onlineAt: new Date().toISOString(),
+        //         name: "Maria",
+        //         points: 2,
+        //       },
+        //       definition: "Azeitona"
+        //     },
+        //     {
+        //       id: "asdasg",
+        //       author: {
+        //         id: "4654894",
+        //         isHost: false,
+        //         onlineAt: new Date().toISOString(),
+        //         name: "Francisco",
+        //         points: 3,
+        //       },
+        //       definition: "Maçã"
+        //     }
+        //   ]
+        // } : undefined,
+        // players: [
+        //   {
+        //     id: "123456",
+        //     isHost: true,
+        //     onlineAt: new Date().toISOString(),
+        //     name: "Antonio",
+        //     points: 6,
+        //   },
+        //   {
+        //     id: "5654654",
+        //     isHost: false,
+        //     onlineAt: new Date().toISOString(),
+        //     name: "Zulmira",
+        //     points: 3,
+        //   },
+        //   {
+        //     id: "654984",
+        //     isHost: false,
+        //     onlineAt: new Date().toISOString(),
+        //     name: "Maria",
+        //     points: 2,
+        //   },
+        //   {
+        //     id: "4654894",
+        //     isHost: false,
+        //     onlineAt: new Date().toISOString(),
+        //     name: "Francisco",
+        //     points: 3,
+        //   }
+        // ],
+        // votes: [["4654894", "asdasg"]]
       }
     ));
 
@@ -127,7 +129,6 @@ export default function Room() {
       })
       .on("broadcast", { event: "start-game" }, ({ payload }) => {
         setConfigs((curr) => ({ ...curr, ...payload.configs }));
-        console.log(payload.initialState);
         setInitialState((curr) => ({ ...curr, ...payload.initialState }));
         startGame();
       })
