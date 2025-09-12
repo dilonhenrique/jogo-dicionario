@@ -37,7 +37,7 @@ export default function RoomPage({ code }: Props) {
               }}
             >
               <h5>Identifique-se</h5>
-              <Input name="name" placeholder="Seu nome" size="lg" variant="underlined" />
+              <Input name="name" placeholder="Seu nome" size="lg" />
               <Button type="submit" color="primary">Entrar</Button>
             </Form>
           )
