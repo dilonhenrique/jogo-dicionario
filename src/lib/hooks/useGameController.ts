@@ -5,7 +5,7 @@ import { useGameRound } from "./useGameRound";
 import { useGameStage } from "./useGameStage";
 import { v4 } from "uuid";
 import { User } from "@/types/user";
-import { getNewRandomWord } from "@/services/dictionary/dictionary.service";
+import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
 
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { stage, setStage } = useGameStage(initialState?.stage);

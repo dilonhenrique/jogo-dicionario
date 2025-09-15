@@ -1,9 +1,10 @@
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import useFirstRender from "@/lib/hooks/useFirstRender";
-import { getNewRandomWord } from "@/services/dictionary/dictionary.service";
+import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
 import { WordDictionary } from "@/types/game";
 import { Button, Spinner } from "@heroui/react";
+import { RefreshCcw } from "lucide-react";
 import { useState, useTransition } from "react";
 
 export default function WordSelector() {
@@ -15,12 +16,14 @@ export default function WordSelector() {
 
   const isHost = currentUser.isHost;
 
-  useFirstRender(() => {
+  function getRandomWords() {
     startLoad(async () => {
       const words = await getNewRandomWord(4);
       setWords(words);
-    })
-  })
+    });
+  }
+
+  useFirstRender(getRandomWords);
 
   return (
     <div className="flex flex-col gap-2">
@@ -30,14 +33,28 @@ export default function WordSelector() {
       {isHost && (
         <>
           {isLoading && <Spinner />}
-          {!isLoading && words.map(word => (
-            <Button
-              key={word.label}
-              onPress={() => actions.setWordAndStartFakeStage(word)}
-            >
-              {word.label}
-            </Button>
-          ))}
+          {!isLoading && (
+            <>
+              {words.map(word => (
+                <Button
+                  key={word.label}
+                  size="lg"
+                  onPress={() => actions.setWordAndStartFakeStage(word)}
+                >
+                  {word.label}
+                </Button>
+              ))}
+
+              <Button
+                variant="light"
+                color="primary"
+                startContent={<RefreshCcw size={20} />}
+                onPress={getRandomWords}
+              >
+                Carregar outras
+              </Button>
+            </>
+          )}
         </>
       )}
     </div>

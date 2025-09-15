@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { joinRoomChannel } from "@/services/room/room.service";
+import { joinRoomChannel } from "@/server/services/room/room.service";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, User } from "@/types/user";
 import { useLatest } from "../hooks/useLatest";

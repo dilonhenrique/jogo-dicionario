@@ -2,19 +2,7 @@
 
 import db from "@/infra/db";
 import { DifficultyLevel, PosTag, Words } from "@/infra/db/types";
-import { WordDictionary } from "@/types/game";
 import { sql } from "kysely";
-import { capitalize } from "lodash";
-
-export async function getNewRandomWord(quantity = 1): Promise<WordDictionary[]> {
-  const random = await pickRandomWord({ difficulties: ["insane"], limit: quantity });
-
-  return random.map(w => ({
-    id: w.id,
-    label: capitalize(w.word),
-    definition: w.definition,
-  }));
-}
 
 type PickOpts = {
   difficulties: DifficultyLevel[];
