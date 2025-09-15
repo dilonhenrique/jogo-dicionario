@@ -19,12 +19,15 @@ export async function getNewRandomWord(quantity = 1): Promise<WordDictionary[]> 
 type PickOpts = {
   difficulties: DifficultyLevel[];
   limit?: number;
-  lang?: string;
-  pos?: PosTag;
+  pos?: PosTag[];
 };
 
 export async function pickRandomWord(opts: PickOpts): Promise<Words[]> {
-  const { limit = 1, difficulties, lang, pos } = opts;
+  const {
+    limit = 1,
+    pos = ["adj", "verb", "noun"],
+    difficulties
+  } = opts;
 
   let q = db
     .selectFrom("words as w")
@@ -36,8 +39,7 @@ export async function pickRandomWord(opts: PickOpts): Promise<Words[]> {
     .where("w.definition", "!=", "")
     .where("s.dislikes", "=", 0);
 
-  if (lang) q = q.where("w.lang_code", "=", lang);
-  if (pos) q = q.where("w.pos", "=", pos);
+  if (pos) q = q.where("w.pos", "in", pos);
 
   return await q.orderBy(sql`random()`).limit(limit).execute();
 }

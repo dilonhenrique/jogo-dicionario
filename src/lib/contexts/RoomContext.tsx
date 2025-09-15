@@ -108,7 +108,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
   }, [channel, code, user.id]);
 
   const startGame = () => {
-    // channel!.send({ type: "broadcast", event: "start-game" });
     setGameStarted(true);
   };
 

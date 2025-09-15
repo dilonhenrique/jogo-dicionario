@@ -45,7 +45,6 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
       value={word.id}
       {...props}
       isSelected={isSelected}
-      // onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
       isDisabled={isDisabled}
       isReadOnly={isMyWord}
       size="lg"

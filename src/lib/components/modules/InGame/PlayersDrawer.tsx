@@ -12,6 +12,7 @@ export default function PlayersDrawer() {
     <>
       <Tooltip content="Placar">
         <Button
+          size="sm"
           isIconOnly
           startContent={<Users2 size={18} />}
           onPress={() => setOpen(true)}
