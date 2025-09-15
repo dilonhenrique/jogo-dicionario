@@ -1,7 +1,7 @@
 import { useGame } from "@/lib/contexts/GameContext"
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import useFirstRender from "@/lib/hooks/useFirstRender";
-import { getNewRandomWord } from "@/server/dictionary/dictionary.service";
+import { getNewRandomWord } from "@/services/dictionary/dictionary.service";
 import { WordDictionary } from "@/types/game";
 import { Button, Spinner } from "@heroui/react";
 import { useState, useTransition } from "react";

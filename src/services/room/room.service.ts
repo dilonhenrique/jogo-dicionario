@@ -1,4 +1,4 @@
-import { supabase } from "@/infra/supabase";
+import { ws } from "@/infra/ws";
 import { User } from "@/types/user";
 
 type Props = {
@@ -7,7 +7,7 @@ type Props = {
 }
 
 export function joinRoomChannel({ code, user }: Props) {
-  const channel = supabase
+  const channel = ws
     .channel(`room:${code}`, {
       config: { presence: { key: user.id, enabled: true }, }
     })

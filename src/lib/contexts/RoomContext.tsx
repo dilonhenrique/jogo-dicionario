@@ -1,11 +1,10 @@
 "use client";
 
-import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { joinRoomChannel } from "@/server/room/joinRoomChannel";
+import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { joinRoomChannel } from "@/services/room/room.service";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, User } from "@/types/user";
 import { useLatest } from "../hooks/useLatest";
-import useFirstRender from "../hooks/useFirstRender";
 
 type RoomChannelContextValue = {
   code: string;
@@ -122,7 +121,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
       gameHasStarted,
       startGame,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [code, onlinePlayers, user, gameHasStarted, channel]
   );
 

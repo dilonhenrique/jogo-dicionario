@@ -7,7 +7,7 @@ import { GameConfig, GameState, WordDictionary, WordRound } from "@/types/game";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 import { Divider } from "@heroui/react";
-import { getNewRandomWord } from "@/server/dictionary/dictionary.service";
+import { getNewRandomWord } from "@/services/dictionary/dictionary.service";
 import { getInitialState } from "./state.debug";
 
 export default function Room() {
