@@ -37,14 +37,14 @@ export function PlayerList({ players, sortMode = "me-first" }: Props) {
             <Chip
               variant="dot"
               color={player.onlineAt === null ? "danger" : "success"}
-              // classNames={{ base: cn(isMe && "border-foreground/50") }}
               endContent={player.isHost && (
                 <Tooltip content="Host">
                   <StarIcon size={14} className="mx-1 mb-0.5" />
                 </Tooltip>
               )}
             >
-              {player.name} {isMe && <span className="text-xs">(você)</span>}
+              {player.name}
+              {isMe && <span className="text-xs"> (você)</span>}
             </Chip>
 
             {"points" in player &&

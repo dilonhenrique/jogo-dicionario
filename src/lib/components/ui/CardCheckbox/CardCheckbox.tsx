@@ -35,12 +35,12 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
     return user.id === currentUser.id ? "Você" : user.name;
   }
 
-  const isRight = word.id === currentRound?.word.id;
+  const isRightWord = word.id === currentRound?.word.id;
   const isMyWord = "author" in word && word.author.id === currentUser.id;
-  const votedForThis = searchVoteForWord(word.id);
+  const playersVotedForThis = searchVoteForWord(word.id);
 
-  const showSuccess = showBlame && isRight;
-  const showDanger = showBlame && !isRight && isSelected;
+  const showSuccess = showBlame && isRightWord;
+  const showDanger = showBlame && !isRightWord && isSelected;
 
   const isDisabled = showBlame || hasVoted;
 
@@ -81,20 +81,26 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
 
       {number}. {capitalize(word.definition)}
 
-      {showBlame && votedForThis.length > 0 && (
+      {showBlame && playersVotedForThis.length > 0 && (
         <ul className="ps-2 mt-2">
-          {votedForThis.map(player => (
-            <li
-              key={player.id}
-              className={cn(
-                "text-sm flex justify-start items-center gap-2",
-                player.id === currentUser.id && "font-semibold",
-              )}
-            >
-              <Check size={16} />
-              {getPlayerName(player)} votou
-            </li>
-          ))}
+          {playersVotedForThis.map(player => {
+            const isMe = player.id === currentUser.id;
+            const shouldPoint = (isMe && isRightWord) || (!isMe && isMyWord);
+
+            return (
+              <li
+                key={player.id}
+                className={cn(
+                  "text-sm flex justify-start items-center gap-2",
+                  isMe && "font-semibold",
+                )}
+              >
+                <Check size={16} />
+                {getPlayerName(player)} votou
+                {shouldPoint && <Chip color="success" size="sm">+1 pt.</Chip>}
+              </li>
+            )
+          })}
         </ul>
       )}
     </Checkbox>

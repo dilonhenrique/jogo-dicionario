@@ -51,7 +51,7 @@ export default function VoteStage() {
       </div>
 
       {!showBlame && (
-        <Button type="submit" color="primary" isDisabled={hasVoted}>
+        <Button type="submit" color="primary" isDisabled={!value || hasVoted}>
           Votar
         </Button>
         // TODO: mudar voto (remover depois votar de novo)
