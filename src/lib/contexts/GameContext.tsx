@@ -90,10 +90,11 @@ function GameProvider({ children, configs, initialState }: Props) {
   const checkIfEverybodyAddedFake = useCallback(() => {
     if (!currentRound) return;
 
-    const totalPlaying = playingPlayers.length;
-    const totalFakes = currentRound.fakes.length;
+    const totalAnswered = playingPlayers.map(p => currentRound?.fakes
+      .some(f => f.author.id === p.id) ?? false)
+      .filter(Boolean).length;
 
-    if (totalPlaying > 1 && totalFakes >= totalPlaying) {
+    if (totalAnswered >= playingPlayers.length) {
       changeStage("vote");
     }
   }, [currentRound, playingPlayers, changeStage])
@@ -101,10 +102,9 @@ function GameProvider({ children, configs, initialState }: Props) {
   const checkIfEverybodyVoted = useCallback(() => {
     if (!currentRound) return;
 
-    const totalPlaying = playingPlayers.length;
-    const totalVotes = votes.size;
+    const totalVotes = playingPlayers.map(p => votes.has(p.id)).filter(Boolean).length;
 
-    if (totalPlaying > 1 && totalVotes >= totalPlaying) {
+    if (totalVotes >= playingPlayers.length) {
       calculateRoundPoints();
       changeStage("blame");
     }
