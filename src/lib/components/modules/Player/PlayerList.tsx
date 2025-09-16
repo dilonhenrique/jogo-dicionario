@@ -2,7 +2,7 @@ import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { GamePlayer, Player } from "@/types/user";
 import { Chip, Tooltip } from "@heroui/react";
 import { sortBy } from "lodash";
-import { Star } from "lucide-react";
+import { StarIcon } from "lucide-react";
 import { useMemo } from "react";
 
 type Props = {
@@ -40,11 +40,11 @@ export function PlayerList({ players, sortMode = "me-first" }: Props) {
               // classNames={{ base: cn(isMe && "border-foreground/50") }}
               endContent={player.isHost && (
                 <Tooltip content="Host">
-                  <Star size={14} className="mx-1" />
+                  <StarIcon size={14} className="mx-1 mb-0.5" />
                 </Tooltip>
               )}
             >
-              {player.name} {isMe && "(você)"}
+              {player.name} {isMe && <span className="text-xs">(você)</span>}
             </Chip>
 
             {"points" in player &&
