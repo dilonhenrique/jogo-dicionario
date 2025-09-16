@@ -16,8 +16,10 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     votes,
     setNewWordAndResetVotes,
     pushFakeWord,
-    pushVote,
+    removeFakeWordFromUser,
     putCurrentRoundInHistory,
+    pushVote,
+    removeVote,
   } = useGameRound({
     currentRound: initialState?.currentRound,
     roundHistory: initialState?.roundHistory,
@@ -62,9 +64,19 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     mapInput: (input) => ({ ...input, id: v4() }),
   })
 
+  const removeFakeWordForUser = useDispatcher<string>({
+    event: 'remove-fake',
+    apply: removeFakeWordFromUser,
+  })
+
   const addVoteForUser = useDispatcher<{ definitionId: string, user: User }>({
     event: 'new-vote',
     apply: pushVote,
+  })
+
+  const removeVoteForUser = useDispatcher<string>({
+    event: 'remove-vote',
+    apply: removeVote,
   })
 
   function calculateRoundPoints() {
@@ -96,7 +108,9 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     setWordAndStartFakeStage,
     checkoutCurrentRound,
     addFakeWordForUser,
-    addVoteForUser,
+    removeFakeWordForUser,
     calculateRoundPoints,
+    addVoteForUser,
+    removeVoteForUser,
   };
 }

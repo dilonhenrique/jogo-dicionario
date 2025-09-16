@@ -8,6 +8,11 @@ function FakeStage() {
   const [value, setValue] = useState("");
   const [isSent, setSent] = useState(false);
 
+  function handleUndo() {
+    actions.removeFakeWord();
+    setSent(false);
+  }
+
   return (
     <Form
       onSubmit={(e) => {
@@ -30,8 +35,7 @@ function FakeStage() {
 
       <div className="flex gap-2">
         <Button type="submit" isDisabled={isSent || value.length <= 5} color="primary">Enviar</Button>
-        {/* TODO: tirar do "banco" */}
-        {isSent && <Button onPress={() => setSent(false)}>Mudar</Button>}
+        {isSent && <Button onPress={handleUndo}>Alterar</Button>}
       </div>
     </Form>
   )

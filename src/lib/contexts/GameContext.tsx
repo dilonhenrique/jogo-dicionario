@@ -18,7 +18,9 @@ type GameContextValue = {
   actions: {
     setWordAndStartFakeStage: (word: SimpleWord) => void;
     addFakeWord: (definition: string) => void;
+    removeFakeWord: () => void;
     vote: (definitionId: string) => void;
+    removeVote: () => void;
     checkoutCurrentRound: () => void;
   }
 }
@@ -42,7 +44,9 @@ function GameProvider({ children, configs, initialState }: Props) {
     votes,
     setWordAndStartFakeStage,
     addFakeWordForUser,
+    removeFakeWordForUser,
     addVoteForUser,
+    removeVoteForUser,
     calculateRoundPoints,
     checkoutCurrentRound,
   } = useGameController(configs, initialState);
@@ -87,6 +91,10 @@ function GameProvider({ children, configs, initialState }: Props) {
     addFakeWordForUser({ definition, author: currentUser, });
   }
 
+  function removeFakeWord() {
+    removeFakeWordForUser(currentUser.id);
+  }
+
   const checkIfEverybodyAddedFake = useCallback(() => {
     if (!currentRound) return;
 
@@ -119,10 +127,16 @@ function GameProvider({ children, configs, initialState }: Props) {
     addVoteForUser({ definitionId, user: currentUser });
   }
 
+  function removeVote() {
+    removeVoteForUser(currentUser.id);
+  }
+
   const actions = {
     setWordAndStartFakeStage,
     addFakeWord,
+    removeFakeWord,
     vote,
+    removeVote,
     checkoutCurrentRound,
   }
 

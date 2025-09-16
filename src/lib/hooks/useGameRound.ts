@@ -72,6 +72,33 @@ export function useGameRound(initialState: Props) {
     if (!success) return null;
   }
 
+  function removeFakeWordFromUser(userId: string) {
+    let success = true;
+
+    setCurrentRound(current => {
+      if (!current) {
+        console.warn("Can't remove a fake to a not started round.");
+        success = false;
+        return current;
+      }
+
+      const existingFake = current.fakes.find(f => f.author.id === userId);
+
+      if (!existingFake) {
+        console.log("User not added fake word yet.");
+        success = false;
+        return current;
+      }
+
+      return {
+        ...current,
+        fakes: current.fakes.filter(f => f.id !== existingFake.id),
+      };
+    });
+
+    if (!success) return null;
+  }
+
   function pushVote({ definitionId, user }: { definitionId: string, user: User }) {
     if (!currentRound) {
       console.warn("Can't vote in a not started round.");
@@ -87,6 +114,10 @@ export function useGameRound(initialState: Props) {
     voteActions.set(user.id, definitionId);
   }
 
+  function removeVote(userId: string) {
+    voteActions.remove(userId);
+  }
+
   return {
     currentRound,
     roundHistory,
@@ -94,6 +125,8 @@ export function useGameRound(initialState: Props) {
     setNewWordAndResetVotes,
     putCurrentRoundInHistory,
     pushFakeWord,
+    removeFakeWordFromUser,
     pushVote,
+    removeVote,
   };
 }
