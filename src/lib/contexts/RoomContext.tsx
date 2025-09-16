@@ -12,6 +12,7 @@ type RoomChannelContextValue = {
   onlinePlayers: Player[];
   currentUser: User;
   gameHasStarted: boolean;
+  amIConnected: boolean;
   startGame: () => void;
 };
 
@@ -32,6 +33,8 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
 
   const [onlinePlayers, setPlayers] = useState<Player[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
+
+  const amIConnected = useMemo(() => onlinePlayers.some(u => u.id === user.id), [onlinePlayers, user.id]);
 
   const latestGameStarted = useLatest(gameHasStarted);
   const latestIsHost = useLatest(user.isHost);
@@ -118,9 +121,10 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
       onlinePlayers,
       currentUser: user,
       gameHasStarted,
+      amIConnected,
       startGame,
     }),
-    [code, onlinePlayers, user, gameHasStarted, channel]
+    [code, onlinePlayers, user, gameHasStarted, channel, amIConnected]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;
