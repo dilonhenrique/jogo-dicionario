@@ -17,7 +17,7 @@ export default function RoomPage({ code }: Props) {
   const isClient = useIsClient();
 
   return (
-    <Container className="relative">
+    <Container className="relative min-h-dvh">
       <h1 className="!text-large text-primary my-2">Sala #{code}</h1>
 
       <Divider className="mb-2" />

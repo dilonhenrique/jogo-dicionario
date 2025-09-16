@@ -4,6 +4,7 @@ import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import PlayersDrawer from "./PlayersDrawer";
+import StatusBar from "./StatusBar";
 
 export default function InGame() {
   const { currentUser } = useRoomChannel();
@@ -28,6 +29,8 @@ export default function InGame() {
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
       {(stage === "vote" || stage === "blame") && <VoteStage />}
+
+      <StatusBar />
     </>
   )
 }

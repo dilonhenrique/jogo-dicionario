@@ -28,7 +28,6 @@ export default function WordSelector() {
   return (
     <div className="flex flex-col gap-2">
       {isHost && <h3>Escolha uma palavra:</h3>}
-      {!isHost && <h3>Aguarde a palavra...</h3>}
 
       {isHost && (
         <>
