@@ -19,7 +19,7 @@ export default function VoteStage() {
 
     return sortBy([
       currentRound.word,
-      ...currentRound.fakes.filter(w => w.author.id !== currentUser.id)
+      ...currentRound.fakes,
     ], "id");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

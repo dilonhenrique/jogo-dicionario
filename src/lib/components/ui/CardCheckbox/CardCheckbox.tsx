@@ -3,6 +3,7 @@ import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { FakeWord, WordDictionary } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { Checkbox, CheckboxProps, Chip, cn } from "@heroui/react";
+import { capitalize } from "lodash";
 import { Check } from "lucide-react";
 
 type Props = CheckboxProps & {
@@ -74,7 +75,7 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
         </Chip>
       )}
 
-      {number}. {word.definition}
+      {number}. {capitalize(word.definition)}
 
       {showBlame && votedForThis.length > 0 && (
         <ul className="ps-2 mt-2">
