@@ -31,6 +31,10 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
     return votedForThis;
   }
 
+  function getPlayerName(user: GamePlayer) {
+    return user.id === currentUser.id ? "Você" : user.name;
+  }
+
   const isRight = word.id === currentRound?.word.id;
   const isMyWord = "author" in word && word.author.id === currentUser.id;
   const votedForThis = searchVoteForWord(word.id);
@@ -80,9 +84,15 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
       {showBlame && votedForThis.length > 0 && (
         <ul className="ps-2 mt-2">
           {votedForThis.map(player => (
-            <li key={player.id} className="text-sm flex justify-start items-center gap-2">
+            <li
+              key={player.id}
+              className={cn(
+                "text-sm flex justify-start items-center gap-2",
+                player.id === currentUser.id && "font-semibold",
+              )}
+            >
               <Check size={16} />
-              {player.name} votou
+              {getPlayerName(player)} votou
             </li>
           ))}
         </ul>

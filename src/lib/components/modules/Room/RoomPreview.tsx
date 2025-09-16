@@ -14,7 +14,7 @@ export default function RoomPreview({ hostStartNewGame }: Props) {
   return (
     <div className="flex flex-col gap-4">
       {!amIConnected && (
-        <div className="text-center flex flex-col gap-1 items-center">
+        <div className="text-center flex flex-col gap-2 items-center py-4">
           <Spinner size="sm" />
           <p className="text-sm text-foreground-500">Entrando na sala...</p>
         </div>
