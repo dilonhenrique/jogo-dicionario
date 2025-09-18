@@ -16,6 +16,7 @@
   "dependencies": {
     "@heroui/react": "^2.8.3",
     "@supabase/supabase-js": "^2.57.2",
+    "cookies-next": "^6.1.0",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.2",
     "framer-motion": "^12.23.12",

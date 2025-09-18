@@ -86,24 +86,6 @@ function GameProvider({ children, configs, initialState }: Props) {
     }
   }, [stage, currentRound, votes, code, userLatest, gameState]);
 
-  // Estado agora vem sempre do banco, não mais necessário o state-request
-  // useEffect(() => {
-  //   channel.on(
-  //     'broadcast',
-  //     { event: 'state-request' },
-  //     ({ payload }) => {
-  //       if (userLatest.current.isHost) {
-  //         channel.send({
-  //           type: "broadcast", event: "game-state", payload: {
-  //             to: payload.replyTo,
-  //             ...gameState.current,
-  //           }
-  //         })
-  //       }
-  //     })
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [channel])
-
   function addFakeWord(definition: string) {
     addFakeWordForUser({ definition, author: currentUser, });
   }

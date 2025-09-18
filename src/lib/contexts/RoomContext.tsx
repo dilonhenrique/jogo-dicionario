@@ -1,11 +1,12 @@
 "use client";
 
-import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 import { joinRoomChannel } from "@/server/services/room/room.service";
 import { findByCode } from "@/server/services/room/room.service";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, User } from "@/types/user";
 import { useLatest } from "../hooks/useLatest";
+import { useSession } from "./SessionContext";
 
 type RoomChannelContextValue = {
   code: string;
@@ -25,13 +26,12 @@ const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChan
 
 type Props = PropsWithChildren & {
   code: string;
-  user: User;
-  setUser: Dispatch<SetStateAction<User>>;
 };
 
-function RoomChannelProvider({ children, code, user, setUser }: Props) {
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+function RoomChannelProvider({ children, code }: Props) {
+  const { user, updateUser } = useSession();
 
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [onlinePlayers, setPlayers] = useState<Player[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
 
@@ -39,14 +39,11 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
 
   const latestIsHost = useLatest(user.isHost);
 
-  useLayoutEffect(() => {
-    setChannel(joinRoomChannel({ code, user }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(() => {
+    const channel = joinRoomChannel({ code, user });
+
     channel
-      ?.on("presence", { event: "sync" }, async () => {
+      .on("presence", { event: "sync" }, async () => {
         const raw = channel.presenceState() as Record<string, Player[]>;
         const players = Object.values(raw).map(lastMeta);
         setPlayers(players);
@@ -63,7 +60,7 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
 
           if (latestIsHost.current !== iAmHostNow) {
             latestIsHost.current = iAmHostNow;
-            setUser(u => ({ ...u, isHost: iAmHostNow }));
+            updateUser({ isHost: iAmHostNow });
           }
 
           if (iAmHostNow) {
@@ -81,15 +78,17 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
         const iAmHostNow = payload.newHostId === user.id;
         if (latestIsHost.current !== iAmHostNow) {
           latestIsHost.current = iAmHostNow;
-          setUser(u => ({ ...u, isHost: iAmHostNow }));
+          updateUser({ isHost: iAmHostNow });
         }
       });
+
+    setTimeout(() => setChannel(channel), 100);
 
     return () => {
       channel?.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, code, user.id]);
+  }, [code, user.id]);
 
   const startGame = () => {
     setGameStarted(true);

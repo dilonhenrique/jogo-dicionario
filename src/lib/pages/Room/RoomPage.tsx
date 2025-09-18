@@ -3,18 +3,17 @@
 import Room from "@/lib/components/modules/Room/Room";
 import Container from "@/lib/components/ui/Container/Container"
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import { createRoom } from "@/server/services/room/room.service";
-import { User } from "@/types/user";
 import { Button, Divider, Form, Input, Spinner } from "@heroui/react";
-import { useIsClient, useLocalStorage } from "usehooks-ts";
-import { v4 } from "uuid";
+import { useIsClient } from "usehooks-ts";
 
 type Props = {
   code: string;
 }
 
 export default function RoomPage({ code }: Props) {
-  const [user, setUser] = useLocalStorage<User | null>('LOCAL_USER', null);
+  const { user, createUser } = useSession();
   const isClient = useIsClient();
 
   return (
@@ -32,15 +31,13 @@ export default function RoomPage({ code }: Props) {
               action={async (formData) => {
                 const name = formData.get("name");
                 if (typeof name === "string") {
-                  const userId = v4();
+                  const user = createUser({ name, isHost: true })// this is probably wrong
 
                   try {
-                    await createRoom({ code, host: { id: userId, name } });
+                    await createRoom({ code, host: user });
                   } catch (error) {
                     console.log("Sala já existe ou erro ao criar:", error);
                   }
-
-                  setUser({ id: userId, name, isHost: true })
                 }
               }}
             >
@@ -50,8 +47,7 @@ export default function RoomPage({ code }: Props) {
             </Form>
           )
           : (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <RoomChannelProvider code={code} user={user} setUser={setUser as any}>
+            <RoomChannelProvider code={code}>
               <Room />
             </RoomChannelProvider>
           )}
