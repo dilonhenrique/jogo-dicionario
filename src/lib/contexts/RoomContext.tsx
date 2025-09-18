@@ -85,11 +85,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
         }
       });
 
-    // Não é mais necessário fazer state-request, o estado vem do banco
-    // setTimeout(() => {
-    //   channel?.send({ type: "broadcast", event: "state-request", payload: { replyTo: user.id } });
-    // }, 1)
-
     return () => {
       channel?.unsubscribe();
     };

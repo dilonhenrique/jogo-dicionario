@@ -3,21 +3,29 @@
 import db from "@/infra/db";
 import { Room } from "@/infra/db/types";
 
-export async function createRoom(code: string, hostUserId: string, hostUserName: string) {
+type Props = {
+  code: string;
+  host: {
+    id: string;
+    name: string;
+  };
+}
+
+export async function createRoom({ code, host }: Props) {
   // TODO: sobrepor somente se expirado
   await db
     .insertInto("rooms")
     .values({
       code,
-      host_user_id: hostUserId,
-      host_user_name: hostUserName,
+      host_user_id: host.id,
+      host_user_name: host.name,
       expires_at: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4h
     })
     .onConflict(oc => oc
       .column("code")
       .doUpdateSet({
-        host_user_id: hostUserId,
-        host_user_name: hostUserName,
+        host_user_id: host.id,
+        host_user_name: host.name,
         expires_at: new Date(Date.now() + 4 * 60 * 60 * 1000),
       })
     )
@@ -61,7 +69,7 @@ export async function isHostOfRoom(code: string, userId: string): Promise<boolea
     .where("code", "=", code)
     .where("expires_at", ">", new Date())
     .executeTakeFirst();
-    
+
   return room?.host_user_id === userId;
 }
 

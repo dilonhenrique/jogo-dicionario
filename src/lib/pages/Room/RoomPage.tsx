@@ -35,7 +35,7 @@ export default function RoomPage({ code }: Props) {
                   const userId = v4();
 
                   try {
-                    await createRoom(code, userId, name);
+                    await createRoom({ code, host: { id: userId, name } });
                   } catch (error) {
                     console.log("Sala já existe ou erro ao criar:", error);
                   }
