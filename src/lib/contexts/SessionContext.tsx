@@ -1,9 +1,10 @@
 "use client";
 
 import { User } from "@/types/user";
-import { createContext, PropsWithChildren, useContext } from "react";
+import { createContext, PropsWithChildren, useCallback, useContext } from "react";
 import { v4 } from "uuid";
 import { useCookieState } from "../hooks/useCookieState";
+import { throttle } from "lodash";
 
 type SessionContextValue = {
   user: User;
@@ -17,9 +18,12 @@ const SessionContext = createContext<SessionContextValue>({} as SessionContextVa
 function SessionProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useCookieState<User | null>('LOCAL_USER', null);
 
-  function updateUser(input: Partial<Omit<User, "id">>) {
-    setUser(u => (u ? { ...u, ...input } : null));
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const updateUser = useCallback(
+    throttle((input: Partial<Omit<User, "id">>) => {
+      setUser(u => (u ? { ...u, ...input } : null));
+    }, 500), []
+  )
 
   function createUser(user: Omit<User, "id">) {
     const newUser = { id: v4(), ...user };

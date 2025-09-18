@@ -1,4 +1,4 @@
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import { GamePlayer, Player } from "@/types/user";
 import { Chip, Tooltip } from "@heroui/react";
 import { sortBy } from "lodash";
@@ -15,7 +15,7 @@ function pointSorter(item: Player | GamePlayer) {
 }
 
 export function PlayerList({ players, sortMode = "me-first" }: Props) {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
 
   const me = players.find(u => u.id === currentUser.id);
   const others = players.filter(u => u.id !== currentUser.id);

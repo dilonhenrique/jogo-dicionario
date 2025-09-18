@@ -3,13 +3,15 @@ import RoomSetup from "./RoomSetup";
 import { Divider, Spinner } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
 import { GameConfig } from "@/types/game";
+import { useSession } from "@/lib/contexts/SessionContext";
 
 type Props = {
   hostStartNewGame: (config: GameConfig) => void
 }
 
 export default function RoomPreview({ hostStartNewGame }: Props) {
-  const { onlinePlayers, currentUser, amIConnected } = useRoomChannel();
+  const { user: currentUser } = useSession();
+  const { onlinePlayers, amIConnected } = useRoomChannel();
 
   return (
     <div className="flex flex-col gap-4">

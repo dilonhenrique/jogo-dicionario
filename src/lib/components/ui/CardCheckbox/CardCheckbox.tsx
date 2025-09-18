@@ -1,5 +1,5 @@
 import { useGame } from "@/lib/contexts/GameContext";
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import { FakeWord, WordDictionary } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { Checkbox, CheckboxProps, Chip, cn } from "@heroui/react";
@@ -14,7 +14,7 @@ type Props = CheckboxProps & {
 }
 
 export default function CardCheckbox({ word, isSelected, showBlame, number, hasVoted, ...props }: Props) {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
   const { currentRound, players, votes } = useGame();
 
   function searchVoteForWord(id: string) {

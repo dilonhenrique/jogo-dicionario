@@ -2,12 +2,12 @@ import { useGame } from "@/lib/contexts/GameContext"
 import FakeStage from "./Stages/FakeStage";
 import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import PlayersDrawer from "./PlayersDrawer";
 import StatusBar from "./StatusBar";
+import { useSession } from "@/lib/contexts/SessionContext";
 
 export default function InGame() {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
   const { stage, players, currentRound } = useGame();
 
 

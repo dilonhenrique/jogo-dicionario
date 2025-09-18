@@ -4,7 +4,7 @@ import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useSt
 import { joinRoomChannel } from "@/server/services/room/room.service";
 import { findByCode } from "@/server/services/room/room.service";
 import { RealtimeChannel } from "@supabase/supabase-js";
-import { Player, User } from "@/types/user";
+import { Player } from "@/types/user";
 import { useLatest } from "../hooks/useLatest";
 import { useSession } from "./SessionContext";
 
@@ -12,7 +12,6 @@ type RoomChannelContextValue = {
   code: string;
   channel: RealtimeChannel;
   onlinePlayers: Player[];
-  currentUser: User;
   gameHasStarted: boolean;
   amIConnected: boolean;
   startGame: () => void;
@@ -38,13 +37,14 @@ function RoomChannelProvider({ children, code }: Props) {
   const amIConnected = useMemo(() => onlinePlayers.some(u => u.id === user.id), [onlinePlayers, user.id]);
 
   const latestIsHost = useLatest(user.isHost);
+  const latestUserId = useLatest(user.id);
 
   useEffect(() => {
-    const channel = joinRoomChannel({ code, user });
+    const roomChannel = joinRoomChannel({ code, user });
 
-    channel
+    roomChannel
       .on("presence", { event: "sync" }, async () => {
-        const raw = channel.presenceState() as Record<string, Player[]>;
+        const raw = roomChannel.presenceState() as Record<string, Player[]>;
         const players = Object.values(raw).map(lastMeta);
         setPlayers(players);
 
@@ -56,18 +56,16 @@ function RoomChannelProvider({ children, code }: Props) {
           }
 
           const hostUserId = room.host.id;
-          const iAmHostNow = hostUserId === user.id;
+          const iAmHostNow = hostUserId === latestUserId.current;
 
           if (latestIsHost.current !== iAmHostNow) {
             latestIsHost.current = iAmHostNow;
             updateUser({ isHost: iAmHostNow });
-          }
 
-          if (iAmHostNow) {
-            await channel.track({
+            await roomChannel.track({
               ...user,
               onlineAt: new Date().toISOString(),
-              isHost: true,
+              isHost: iAmHostNow,
             });
           }
         } catch (error) {
@@ -75,20 +73,20 @@ function RoomChannelProvider({ children, code }: Props) {
         }
       })
       .on("broadcast", { event: "host-transferred" }, ({ payload }) => {
-        const iAmHostNow = payload.newHostId === user.id;
+        const iAmHostNow = payload.newHostId === latestUserId.current;
         if (latestIsHost.current !== iAmHostNow) {
           latestIsHost.current = iAmHostNow;
           updateUser({ isHost: iAmHostNow });
         }
       });
 
-    setTimeout(() => setChannel(channel), 100);
+    setChannel(roomChannel);
 
     return () => {
-      channel?.unsubscribe();
+      roomChannel?.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code, user.id]);
+  }, [code]);
 
   const startGame = () => {
     setGameStarted(true);
@@ -99,12 +97,11 @@ function RoomChannelProvider({ children, code }: Props) {
       code,
       channel: channel!,
       onlinePlayers,
-      currentUser: user,
       gameHasStarted,
       amIConnected,
       startGame,
     }),
-    [code, onlinePlayers, user, gameHasStarted, channel, amIConnected]
+    [code, onlinePlayers, gameHasStarted, channel, amIConnected]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

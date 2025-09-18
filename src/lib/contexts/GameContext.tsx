@@ -8,6 +8,7 @@ import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
 import { updateGameState } from "@/server/services/gameSession/gameSession.service";
+import { useSession } from "./SessionContext";
 
 type GameContextValue = {
   stage: GameStage;
@@ -34,7 +35,8 @@ type Props = PropsWithChildren & {
 }
 
 function GameProvider({ children, configs, initialState }: Props) {
-  const { currentUser, channel, code } = useRoomChannel();
+  const { user: currentUser } = useSession();
+  const { channel, code } = useRoomChannel();
 
   const {
     stage,

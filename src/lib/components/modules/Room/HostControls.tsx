@@ -3,9 +3,11 @@ import { Select, SelectItem } from "@heroui/react";
 import { Crown } from "lucide-react";
 import { useState } from "react";
 import { transferHost } from "@/server/services/room/room.service";
+import { useSession } from "@/lib/contexts/SessionContext";
 
 export default function HostControls() {
-  const { currentUser, onlinePlayers, code, channel } = useRoomChannel();
+  const { user: currentUser } = useSession();
+  const { onlinePlayers, code, channel } = useRoomChannel();
   const [isTransferring, setIsTransferring] = useState(false);
 
   const handleTransferHost = async (newHostId: string) => {

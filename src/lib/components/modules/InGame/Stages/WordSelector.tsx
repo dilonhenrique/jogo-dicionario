@@ -1,5 +1,5 @@
 import { useGame } from "@/lib/contexts/GameContext"
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import useFirstRender from "@/lib/hooks/useFirstRender";
 import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
 import { WordDictionary } from "@/types/game";
@@ -8,7 +8,7 @@ import { RefreshCcw } from "lucide-react";
 import { useState, useTransition } from "react";
 
 export default function WordSelector() {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
   const { actions } = useGame();
 
   const [words, setWords] = useState<WordDictionary[]>([]);

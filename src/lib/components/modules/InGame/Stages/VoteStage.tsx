@@ -1,12 +1,12 @@
 import { sortBy } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Button, Form } from "@heroui/react";
 import { useMemo, useState } from "react";
 import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
+import { useSession } from "@/lib/contexts/SessionContext";
 
 export default function VoteStage() {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
   const { currentRound, actions, stage, votes } = useGame();
 
   const [value, setValue] = useState(votes.get(currentUser.id));
