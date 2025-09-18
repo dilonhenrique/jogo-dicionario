@@ -3,6 +3,7 @@
 import Room from "@/lib/components/modules/Room/Room";
 import Container from "@/lib/components/ui/Container/Container"
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
+import { createRoom } from "@/server/services/room/room.service";
 import { User } from "@/types/user";
 import { Button, Divider, Form, Input, Spinner } from "@heroui/react";
 import { useIsClient, useLocalStorage } from "usehooks-ts";
@@ -28,11 +29,18 @@ export default function RoomPage({ code }: Props) {
           ? (
             <Form
               className="flex flex-col"
-              action={(formData) => {
+              action={async (formData) => {
                 const name = formData.get("name");
                 if (typeof name === "string") {
-                  // TODO: setar isHost como true quando estiver criando sala
-                  setUser({ id: v4(), name, isHost: false })
+                  const userId = v4();
+
+                  try {
+                    await createRoom(code, userId, name);
+                  } catch (error) {
+                    console.log("Sala já existe ou erro ao criar:", error);
+                  }
+
+                  setUser({ id: userId, name, isHost: true })
                 }
               }}
             >

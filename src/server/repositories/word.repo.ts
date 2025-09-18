@@ -1,7 +1,7 @@
 "use server";
 
 import db from "@/infra/db";
-import { DifficultyLevel, PosTag, Words } from "@/infra/db/types";
+import { DifficultyLevel, PosTag, Word } from "@/infra/db/types";
 import { sql } from "kysely";
 
 type PickOpts = {
@@ -10,7 +10,7 @@ type PickOpts = {
   pos?: PosTag[];
 };
 
-export async function pickRandomWord(opts: PickOpts): Promise<Words[]> {
+export async function pickRandomWord(opts: PickOpts): Promise<Word[]> {
   const {
     limit = 1,
     pos = ["adj", "verb", "noun"],

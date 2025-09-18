@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:status": "tsx scripts/migrate.ts status",
+    "migrate:up": "tsx scripts/migrate.ts up",
+    "migrate:reset": "tsx scripts/migrate.ts reset",
+    "cleanup": "tsx scripts/cleanup.ts"
   },
   "dependencies": {
     "@heroui/react": "^2.8.3",

@@ -7,6 +7,7 @@ import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
+import { updateGameState } from "@/server/services/gameSession/gameSession.service";
 
 type GameContextValue = {
   stage: GameStage;
@@ -33,7 +34,7 @@ type Props = PropsWithChildren & {
 }
 
 function GameProvider({ children, configs, initialState }: Props) {
-  const { currentUser, channel } = useRoomChannel();
+  const { currentUser, channel, code } = useRoomChannel();
 
   const {
     stage,
@@ -71,21 +72,37 @@ function GameProvider({ children, configs, initialState }: Props) {
   })
 
   useEffect(() => {
-    channel.on(
-      'broadcast',
-      { event: 'state-request' },
-      ({ payload }) => {
-        if (userLatest.current.isHost) {
-          channel.send({
-            type: "broadcast", event: "game-state", payload: {
-              to: payload.replyTo,
-              ...gameState.current,
-            }
-          })
+    if (userLatest.current.isHost) {
+      const saveState = async () => {
+        try {
+          await updateGameState(code, gameState.current);
+        } catch (error) {
+          console.error("Erro ao salvar estado do jogo:", error);
         }
-      })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel])
+      };
+
+      const timeoutId = setTimeout(saveState, 500);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [stage, currentRound, votes, code, userLatest, gameState]);
+
+  // Estado agora vem sempre do banco, não mais necessário o state-request
+  // useEffect(() => {
+  //   channel.on(
+  //     'broadcast',
+  //     { event: 'state-request' },
+  //     ({ payload }) => {
+  //       if (userLatest.current.isHost) {
+  //         channel.send({
+  //           type: "broadcast", event: "game-state", payload: {
+  //             to: payload.replyTo,
+  //             ...gameState.current,
+  //           }
+  //         })
+  //       }
+  //     })
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [channel])
 
   function addFakeWord(definition: string) {
     addFakeWordForUser({ definition, author: currentUser, });

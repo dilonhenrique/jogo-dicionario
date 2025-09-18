@@ -10,8 +10,9 @@ export default function HomePage() {
   const router = useRouter();
   const [code, setCode] = useState("");
 
-  function createNewRoom() {
+  async function createNewRoom() {
     const code = generateRoomCode();
+
     router.push(`/r/${code}`);
   }
 
@@ -23,7 +24,7 @@ export default function HomePage() {
 
       <Form
         className="flex-row"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (isValidRoomCode(code)) {
             router.push(`/r/${code}`);

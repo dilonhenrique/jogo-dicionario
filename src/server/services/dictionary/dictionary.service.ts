@@ -1,6 +1,6 @@
 "use server";
 
-import { pickRandomWord } from "@/server/repositories/words";
+import { pickRandomWord } from "@/server/repositories/word.repo";
 import { WordDictionary } from "@/types/game";
 import { capitalize } from "lodash";
 

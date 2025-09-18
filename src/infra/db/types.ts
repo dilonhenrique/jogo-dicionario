@@ -8,6 +8,7 @@ export type PosTag =
   | "num" | "det" | "abbr" | "prefix" | "suffix" | "other";
 
 type Numeric = string;
+type JsonValue = object | string | number | boolean | null;
 
 export interface WordsTable {
   id: ColumnType<string, string | undefined, never>;
@@ -38,15 +39,41 @@ export interface WordScoresView {
   score: number;
 }
 
+export interface GameSessionsTable {
+  room_code: string;
+  game_state: JsonValue;
+  configs: JsonValue;
+  created_at: ColumnType<Date, string | Date | undefined, never>;
+  updated_at: ColumnType<Date, string | Date | undefined, string | Date>;
+}
+
+export interface RoomsTable {
+  code: string;
+  host_user_id: string;
+  host_user_name: string;
+  created_at: ColumnType<Date, string | Date | undefined, never>;
+  expires_at: Date;
+}
+
 export interface Database {
   words: WordsTable;
   word_votes: WordVotesTable;
   word_scores: WordScoresView;
+  game_sessions: GameSessionsTable;
+  rooms: RoomsTable;
 }
 
-export type Words = Selectable<WordsTable>;
+export type Word = Selectable<WordsTable>;
 export type NewWord = Insertable<WordsTable>;
 export type UpdateWord = Updateable<WordsTable>;
+
+export type GameSession = Selectable<GameSessionsTable>;
+export type NewGameSession = Insertable<GameSessionsTable>;
+export type UpdateGameSession = Updateable<GameSessionsTable>;
+
+export type Room = Selectable<RoomsTable>;
+export type NewRoom = Insertable<RoomsTable>;
+export type UpdateRoom = Updateable<RoomsTable>;
 
 export type WordVote = Selectable<WordVotesTable>;
 export type NewWordVote = Insertable<WordVotesTable>;

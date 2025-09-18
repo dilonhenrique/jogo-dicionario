@@ -2,6 +2,7 @@
 
 import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { joinRoomChannel } from "@/server/services/room/room.service";
+import { findByCode } from "@/server/services/room/room.service";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, User } from "@/types/user";
 import { useLatest } from "../hooks/useLatest";
@@ -36,7 +37,6 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
 
   const amIConnected = useMemo(() => onlinePlayers.some(u => u.id === user.id), [onlinePlayers, user.id]);
 
-  const latestGameStarted = useLatest(gameHasStarted);
   const latestIsHost = useLatest(user.isHost);
 
   useLayoutEffect(() => {
@@ -51,58 +51,44 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
         const players = Object.values(raw).map(lastMeta);
         setPlayers(players);
 
-        const host = players.find(p => p.isHost);
-        if (host) {
-          const iAmHostNow = host.id === user.id;
+        try {
+          const room = await findByCode(code);
+          if (!room) {
+            console.warn("Sala não encontrada no banco de dados");
+            return;
+          }
+
+          const hostUserId = room.host.id;
+          const iAmHostNow = hostUserId === user.id;
 
           if (latestIsHost.current !== iAmHostNow) {
             latestIsHost.current = iAmHostNow;
-            setUser(u => (u.isHost === iAmHostNow ? u : { ...u, isHost: iAmHostNow }));
+            setUser(u => ({ ...u, isHost: iAmHostNow }));
           }
 
-          return;
-        }
-
-        const sorted = [...players].sort((a, b) => {
-          const ta = new Date(a.onlineAt || 0).getTime();
-          const tb = new Date(b.onlineAt || 0).getTime();
-          if (ta !== tb) return ta - tb;
-          return (a.id || "").localeCompare(b.id || "");
-        });
-
-        const shouldClaim = sorted[0]?.id === user.id;
-        if (!shouldClaim) return;
-
-        latestIsHost.current = true;
-        setUser(u => (u.isHost ? u : { ...u, isHost: true }));
-
-        await channel.track({
-          ...user,
-          onlineAt: new Date().toISOString(),
-          isHost: true,
-        });
-      })
-      .on("broadcast", { event: "state-request" }, ({ payload }) => {
-        if (latestIsHost.current) {
-          channel.send({
-            type: "broadcast",
-            event: "room-state",
-            payload: {
-              to: payload.replyTo,
-              gameHasStarted: latestGameStarted.current
-            },
-          });
+          if (iAmHostNow) {
+            await channel.track({
+              ...user,
+              onlineAt: new Date().toISOString(),
+              isHost: true,
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao verificar sala/sessão:", error);
         }
       })
-      .on("broadcast", { event: "room-state" }, ({ payload }) => {
-        if (payload.to === user.id && typeof payload?.gameHasStarted === "boolean") {
-          setGameStarted(payload.gameHasStarted);
+      .on("broadcast", { event: "host-transferred" }, ({ payload }) => {
+        const iAmHostNow = payload.newHostId === user.id;
+        if (latestIsHost.current !== iAmHostNow) {
+          latestIsHost.current = iAmHostNow;
+          setUser(u => ({ ...u, isHost: iAmHostNow }));
         }
       });
 
-    setTimeout(() => {
-      channel?.send({ type: "broadcast", event: "state-request", payload: { replyTo: user.id } });
-    }, 1)
+    // Não é mais necessário fazer state-request, o estado vem do banco
+    // setTimeout(() => {
+    //   channel?.send({ type: "broadcast", event: "state-request", payload: { replyTo: user.id } });
+    // }, 1)
 
     return () => {
       channel?.unsubscribe();
