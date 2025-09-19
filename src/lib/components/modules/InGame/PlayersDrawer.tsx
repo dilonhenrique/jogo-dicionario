@@ -4,7 +4,7 @@ import { PlayerList } from "../Player/PlayerList";
 import { useGame } from "@/lib/contexts/GameContext";
 import { Users2 } from "lucide-react";
 
-export default function PlayersDrawer() {
+export default function PlayersDrawerButton() {
   const { players } = useGame();
   const [isOpen, setOpen] = useState(false);
 
@@ -19,7 +19,6 @@ export default function PlayersDrawer() {
           color="primary"
           variant="ghost"
           radius="full"
-          className="absolute top-10 right-10"
         />
       </Tooltip>
 

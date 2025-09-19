@@ -1,5 +1,5 @@
 import RoomPage from "@/lib/pages/Room/RoomPage";
-import { isValidRoomCode } from "@/lib/utils/generateRoomCode";
+import { roomService } from "@/server/services/room";
 import { notFound } from "next/navigation";
 
 type Props = {
@@ -8,11 +8,11 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const roomCode = (await params).roomCode;
-  const isValid = isValidRoomCode(roomCode);
+  const room = await roomService.findByCode(roomCode);
 
-  if (!isValid) notFound();
+  if (!room) notFound();
 
   return (
-    <RoomPage code={roomCode} />
+    <RoomPage room={room} />
   )
 }

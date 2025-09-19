@@ -53,7 +53,6 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
             id: "123456",
             author: {
               id: "123456",
-              isHost: true,
               name: "Antonio",
             },
             definition: "Sorvete"
@@ -62,7 +61,6 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
             id: "d4as8d49as8",
             author: {
               id: "5654654",
-              isHost: false,
               name: "Zulmira",
             },
             definition: "Goiaba"
@@ -71,7 +69,6 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
             id: "46das4d6a",
             author: {
               id: "654984",
-              isHost: false,
               name: "Maria",
             },
             definition: "Azeitona"
@@ -80,7 +77,6 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
             id: "asdasg",
             author: {
               id: myId,
-              isHost: false,
               name: "Francisco",
             },
             definition: "Maçã"

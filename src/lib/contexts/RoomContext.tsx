@@ -1,114 +1,84 @@
 "use client";
 
-import { createContext, Dispatch, PropsWithChildren, SetStateAction, useContext, useEffect, useLayoutEffect, useMemo, useState } from "react";
-import { joinRoomChannel } from "@/server/services/room/room.service";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
+import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
-import { Player, User } from "@/types/user";
-import { useLatest } from "../hooks/useLatest";
+import { Player, RoomUser } from "@/types/user";
+import { useSession } from "./SessionContext";
+import { Room } from "@/types/room";
+import { GameConfig } from "@/types/game";
 
 type RoomChannelContextValue = {
   code: string;
+  hostId: string;
   channel: RealtimeChannel;
   onlinePlayers: Player[];
-  currentUser: User;
   gameHasStarted: boolean;
+  amIHost: boolean;
   amIConnected: boolean;
+  configs: GameConfig;
   startGame: () => void;
 };
 
-function lastMeta(arr: Player[]) {
+function lastMeta(arr: RoomUser[]) {
   return arr[arr.length - 1];
 }
 
 const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChannelContextValue);
 
 type Props = PropsWithChildren & {
-  code: string;
-  user: User;
-  setUser: Dispatch<SetStateAction<User>>;
+  room: Room;
 };
 
-function RoomChannelProvider({ children, code, user, setUser }: Props) {
+function RoomChannelProvider({ children, room }: Props) {
+  const { user } = useSession();
+
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
-
-  const [onlinePlayers, setPlayers] = useState<Player[]>([]);
+  const [hostId, setHostId] = useState(room.host.id);
+  const [users, setUsers] = useState<RoomUser[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
+  const configs = room.configs as GameConfig;
 
-  const amIConnected = useMemo(() => onlinePlayers.some(u => u.id === user.id), [onlinePlayers, user.id]);
-
-  const latestGameStarted = useLatest(gameHasStarted);
-  const latestIsHost = useLatest(user.isHost);
-
-  useLayoutEffect(() => {
-    setChannel(joinRoomChannel({ code, user }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const amIConnected = users.some(u => u.id === user.id);
 
   useEffect(() => {
-    channel
-      ?.on("presence", { event: "sync" }, async () => {
-        const raw = channel.presenceState() as Record<string, Player[]>;
+    const roomChannel = roomService.joinRoomChannel({ code: room.code, user });
+
+    roomChannel
+      .on("presence", { event: "sync" }, async () => {
+        const raw = roomChannel.presenceState() as Record<string, RoomUser[]>;
         const players = Object.values(raw).map(lastMeta);
-        setPlayers(players);
-
-        const host = players.find(p => p.isHost);
-        if (host) {
-          const iAmHostNow = host.id === user.id;
-
-          if (latestIsHost.current !== iAmHostNow) {
-            latestIsHost.current = iAmHostNow;
-            setUser(u => (u.isHost === iAmHostNow ? u : { ...u, isHost: iAmHostNow }));
-          }
-
-          return;
-        }
-
-        const sorted = [...players].sort((a, b) => {
-          const ta = new Date(a.onlineAt || 0).getTime();
-          const tb = new Date(b.onlineAt || 0).getTime();
-          if (ta !== tb) return ta - tb;
-          return (a.id || "").localeCompare(b.id || "");
-        });
-
-        const shouldClaim = sorted[0]?.id === user.id;
-        if (!shouldClaim) return;
-
-        latestIsHost.current = true;
-        setUser(u => (u.isHost ? u : { ...u, isHost: true }));
-
-        await channel.track({
-          ...user,
-          onlineAt: new Date().toISOString(),
-          isHost: true,
-        });
+        setUsers(players);
       })
-      .on("broadcast", { event: "state-request" }, ({ payload }) => {
-        if (latestIsHost.current) {
-          channel.send({
-            type: "broadcast",
-            event: "room-state",
-            payload: {
-              to: payload.replyTo,
-              gameHasStarted: latestGameStarted.current
-            },
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: 'UPDATE', table: 'rooms', filter: `code=eq.${room.code}` },
+        (payload) => { setHostId(payload.new.host_user_id) }
+      )
+      // .on(
+      //   "postgres_changes",
+      //   { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+      //   (payload) => { console.log(payload) }
+      // )
+      .subscribe(async (status, err) => {
+        if (err) console.error(err);
+
+        if (status === "SUBSCRIBED") {
+          await roomChannel.track({
+            ...user,
+            onlineAt: new Date().toISOString(),
           });
-        }
-      })
-      .on("broadcast", { event: "room-state" }, ({ payload }) => {
-        if (payload.to === user.id && typeof payload?.gameHasStarted === "boolean") {
-          setGameStarted(payload.gameHasStarted);
         }
       });
 
-    setTimeout(() => {
-      channel?.send({ type: "broadcast", event: "state-request", payload: { replyTo: user.id } });
-    }, 1)
+
+    setChannel(roomChannel);
 
     return () => {
-      channel?.unsubscribe();
+      roomChannel?.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, code, user.id]);
+  }, [room.code]);
 
   const startGame = () => {
     setGameStarted(true);
@@ -116,15 +86,17 @@ function RoomChannelProvider({ children, code, user, setUser }: Props) {
 
   const value = useMemo(
     () => ({
-      code,
+      code: room.code,
+      hostId,
       channel: channel!,
-      onlinePlayers,
-      currentUser: user,
+      onlinePlayers: users.map(u => ({ ...u, isHost: u.id === hostId })),
       gameHasStarted,
+      amIHost: user.id === hostId,
       amIConnected,
+      configs,
       startGame,
     }),
-    [code, onlinePlayers, user, gameHasStarted, channel, amIConnected]
+    [room.code, hostId, users, gameHasStarted, channel, amIConnected, configs, user.id]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

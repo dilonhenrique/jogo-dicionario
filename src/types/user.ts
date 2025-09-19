@@ -1,11 +1,14 @@
 export type User = {
   id: string;
   name: string;
-  isHost: boolean;
 }
 
-export type Player = User & {
+export type RoomUser = User & {
   onlineAt: string | null;
+}
+
+export type Player = RoomUser & {
+  isHost: boolean;
 }
 
 export type GamePlayer = Player & {

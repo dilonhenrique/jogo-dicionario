@@ -1,12 +1,14 @@
 import { sortBy } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Button, Form } from "@heroui/react";
 import { useMemo, useState } from "react";
 import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
+import { useSession } from "@/lib/contexts/SessionContext";
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
 
 export default function VoteStage() {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
+  const { amIHost } = useRoomChannel();
   const { currentRound, actions, stage, votes } = useGame();
 
   const [value, setValue] = useState(votes.get(currentUser.id));
@@ -55,12 +57,15 @@ export default function VoteStage() {
           <Button type="submit" color="primary" isDisabled={!value || hasVoted}>
             Confirmar voto
           </Button>
-          {hasVoted && <Button onPress={actions.removeVote}>
+          {hasVoted && <Button onPress={() => {
+            actions.removeVote();
+            setVoted(false);
+          }}>
             Cancelar voto
           </Button>}
         </>
       )}
-      {showBlame && currentUser.isHost && (
+      {showBlame && amIHost && (
         <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>
           Iniciar próxima rodada
         </Button>

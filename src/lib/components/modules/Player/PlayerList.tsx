@@ -1,8 +1,8 @@
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import { GamePlayer, Player } from "@/types/user";
 import { Chip, Tooltip } from "@heroui/react";
 import { sortBy } from "lodash";
-import { StarIcon } from "lucide-react";
+import { CrownIcon } from "lucide-react";
 import { useMemo } from "react";
 
 type Props = {
@@ -15,7 +15,7 @@ function pointSorter(item: Player | GamePlayer) {
 }
 
 export function PlayerList({ players, sortMode = "me-first" }: Props) {
-  const { currentUser } = useRoomChannel();
+  const { user: currentUser } = useSession();
 
   const me = players.find(u => u.id === currentUser.id);
   const others = players.filter(u => u.id !== currentUser.id);
@@ -39,7 +39,7 @@ export function PlayerList({ players, sortMode = "me-first" }: Props) {
               color={player.onlineAt === null ? "danger" : "success"}
               endContent={player.isHost && (
                 <Tooltip content="Host">
-                  <StarIcon size={14} className="mx-1 mb-0.5" />
+                  <CrownIcon size={14} className="mx-1 mb-0.5 text-warning" />
                 </Tooltip>
               )}
             >

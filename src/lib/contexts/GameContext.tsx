@@ -7,6 +7,8 @@ import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
+import { gameSessionService } from "@/server/services/gameSession";
+import { useSession } from "./SessionContext";
 
 type GameContextValue = {
   stage: GameStage;
@@ -33,7 +35,8 @@ type Props = PropsWithChildren & {
 }
 
 function GameProvider({ children, configs, initialState }: Props) {
-  const { currentUser, channel } = useRoomChannel();
+  const { user: currentUser } = useSession();
+  const { channel, code, amIHost } = useRoomChannel();
 
   const {
     stage,
@@ -53,7 +56,7 @@ function GameProvider({ children, configs, initialState }: Props) {
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
-  const userLatest = useLatest(currentUser);
+  const amIHostLatest = useLatest(amIHost);
   const gameState = useLatest<GameState>({
     players,
     stage,
@@ -71,21 +74,20 @@ function GameProvider({ children, configs, initialState }: Props) {
   })
 
   useEffect(() => {
-    channel.on(
-      'broadcast',
-      { event: 'state-request' },
-      ({ payload }) => {
-        if (userLatest.current.isHost) {
-          channel.send({
-            type: "broadcast", event: "game-state", payload: {
-              to: payload.replyTo,
-              ...gameState.current,
-            }
-          })
+    if (amIHostLatest.current) {
+      const saveState = async () => {
+        try {
+          await gameSessionService.updateState(code, gameState.current);
+        } catch (error) {
+          console.error("Erro ao salvar estado do jogo:", error);
         }
-      })
+      };
+
+      const timeoutId = setTimeout(saveState, 500);
+      return () => clearTimeout(timeoutId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel])
+  }, [stage, currentRound, votes, code, gameState]);
 
   function addFakeWord(definition: string) {
     addFakeWordForUser({ definition, author: currentUser, });

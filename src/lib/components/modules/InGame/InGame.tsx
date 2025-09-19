@@ -2,16 +2,19 @@ import { useGame } from "@/lib/contexts/GameContext"
 import FakeStage from "./Stages/FakeStage";
 import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
-import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import PlayersDrawer from "./PlayersDrawer";
+import PlayersDrawerButton from "./PlayersDrawer";
 import StatusBar from "./StatusBar";
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
+import { useSession } from "@/lib/contexts/SessionContext";
+import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
+import HostControlButton from "../Room/HostControlButton";
 
 export default function InGame() {
-  const { currentUser } = useRoomChannel();
-  const { stage, players, currentRound } = useGame();
+  const { user } = useSession();
+  const { amIHost } = useRoomChannel();
+  const { stage, currentRound, players } = useGame();
 
-
-  if (!currentUser.isHost && !players.some(p => p.id === currentUser.id)) {
+  if (!amIHost && !players.some(p => p.id === user.id)) {
     return <p>A partida já começou (sem você)</p>;
   }
 
@@ -24,7 +27,10 @@ export default function InGame() {
         </div>
       )}
 
-      <PlayersDrawer />
+      <HeaderContainer>
+        {amIHost && <HostControlButton />}
+        <PlayersDrawerButton />
+      </HeaderContainer>
 
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
