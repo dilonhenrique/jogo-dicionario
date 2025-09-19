@@ -1,23 +1,18 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import InGame from "../InGame/InGame";
 import { GameProvider } from "@/lib/contexts/GameContext";
-import { GameConfig, GameState, WordDictionary } from "@/types/game";
+import { GameState, WordDictionary } from "@/types/game";
 import { useEffect, useState } from "react";
-import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 import { dictionaryService } from "@/server/services/dictionary";
 import RoomPreview from "./RoomPreview";
 import { gameSessionService } from "@/server/services/gameSession";
 
 export default function Room() {
-  const { channel, gameHasStarted, startGame, code } = useRoomChannel();
-
-  const [configs, setConfigs] = useState(DEFAULT_CONFIG);
+  const { channel, gameHasStarted, startGame, code, configs } = useRoomChannel();
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
-  async function hostStartNewGame(config: Partial<GameConfig>) {
-    const finalConfig: GameConfig = { ...DEFAULT_CONFIG, ...config };
-
-    const hostChooseWord = finalConfig.enableHostChooseWord === true;
+  async function hostStartNewGame() {
+    const hostChooseWord = configs.enableHostChooseWord === true;
     let word: WordDictionary | null = null;
 
     if (!hostChooseWord) {
@@ -32,9 +27,11 @@ export default function Room() {
       votes: [],
     };
 
-    await gameSessionService.create({ roomCode: code, configs: finalConfig, initialState: initialGameState });
+    await gameSessionService.create({ 
+      roomCode: code, 
+      initialState: initialGameState 
+    });
 
-    setConfigs(finalConfig);
     setInitialState(initialGameState);
     startGame();
   }
@@ -44,7 +41,6 @@ export default function Room() {
       try {
         const session = await gameSessionService.get(code);
         if (session) {
-          setConfigs(session.configs as GameConfig);
           setInitialState(session.game_state as GameState);
           startGame();
         }
@@ -57,23 +53,18 @@ export default function Room() {
 
     channel
       ?.on("broadcast", { event: "start-game" }, ({ payload }) => {
-        setConfigs((curr) => ({ ...curr, ...payload.configs }));
         setInitialState((curr) => ({ ...curr, ...payload.initialState }));
         startGame();
-      })
+      });
+  }, [channel, code, startGame]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channel, code])
+  if (gameHasStarted && initialState) {
+    return (
+      <GameProvider configs={configs} initialState={initialState}>
+        <InGame />
+      </GameProvider>
+    );
+  }
 
-  return (
-    gameHasStarted
-      ? (
-        <GameProvider configs={configs} initialState={initialState}>
-          <InGame />
-        </GameProvider>
-      )
-      : (
-        <RoomPreview hostStartNewGame={hostStartNewGame} />
-      )
-  );
+  return <RoomPreview onStartGame={hostStartNewGame} />;
 }

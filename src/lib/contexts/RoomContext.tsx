@@ -6,6 +6,7 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
 import { Room } from "@/types/room";
+import { GameConfig } from "@/types/game";
 
 type RoomChannelContextValue = {
   code: string;
@@ -15,6 +16,7 @@ type RoomChannelContextValue = {
   gameHasStarted: boolean;
   amIHost: boolean;
   amIConnected: boolean;
+  configs: GameConfig;
   startGame: () => void;
 };
 
@@ -35,6 +37,7 @@ function RoomChannelProvider({ children, room }: Props) {
   const [hostId, setHostId] = useState(room.host.id);
   const [users, setUsers] = useState<RoomUser[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
+  const configs = room.configs as GameConfig;
 
   const amIConnected = users.some(u => u.id === user.id);
 
@@ -85,10 +88,10 @@ function RoomChannelProvider({ children, room }: Props) {
       gameHasStarted,
       amIHost: user.id === hostId,
       amIConnected,
+      configs,
       startGame,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [room.code, hostId, users, gameHasStarted, channel, amIConnected]
+    [room.code, hostId, users, gameHasStarted, channel, amIConnected, configs, user.id]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

@@ -5,7 +5,8 @@ export type DifficultyLevel =
 
 export type PosTag =
   | "noun" | "verb" | "adj" | "adv" | "pron" | "prep" | "conj" | "interj"
-  | "num" | "det" | "abbr" | "prefix" | "suffix" | "other";
+  | "num" | "det" | "abbr" | "prefix" | "suffix" | "other"
+  | "phrase" | "intj" | "abbrev" | "contraction" | "name";
 
 type Numeric = string;
 type JsonValue = object | string | number | boolean | null;
@@ -42,7 +43,6 @@ export interface WordScoresView {
 export interface GameSessionsTable {
   room_code: string;
   game_state: JsonValue;
-  configs: JsonValue;
   created_at: ColumnType<Date, string | Date | undefined, never>;
   updated_at: ColumnType<Date, string | Date | undefined, string | Date>;
 }
@@ -51,6 +51,7 @@ export interface RoomsTable {
   code: string;
   host_user_id: string;
   host_user_name: string;
+  configs: JsonValue;
   created_at: ColumnType<Date, string | Date | undefined, never>;
   expires_at: Date;
 }
