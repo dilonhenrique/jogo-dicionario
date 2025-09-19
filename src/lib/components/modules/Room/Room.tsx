@@ -6,10 +6,14 @@ import { useEffect, useState } from "react";
 import { dictionaryService } from "@/server/services/dictionary";
 import RoomPreview from "./RoomPreview";
 import { gameSessionService } from "@/server/services/gameSession";
+import { addToast } from "@heroui/react";
+import { useIsClient } from "usehooks-ts";
+import { Crown } from "lucide-react";
 
 export default function Room() {
-  const { channel, gameHasStarted, startGame, code, configs, onlinePlayers } = useRoomChannel();
+  const { channel, gameHasStarted, startGame, code, configs, onlinePlayers, amIHost } = useRoomChannel();
   const [initialState, setInitialState] = useState<Partial<GameState>>();
+  const isClient = useIsClient();
 
   async function hostStartNewGame() {
     const hostChooseWord = configs.enableHostChooseWord === true;
@@ -57,6 +61,18 @@ export default function Room() {
         startGame();
       });
   }, [channel, code, startGame]);
+
+  useEffect(() => {
+    if (isClient && amIHost) {
+      addToast({
+        color: "warning",
+        title: "Você foi promovido a Host",
+        icon: <Crown size={14} />,
+        classNames: { icon: "!fill-none" },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amIHost])
 
   if (gameHasStarted && initialState) {
     return (

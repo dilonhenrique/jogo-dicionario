@@ -1,7 +1,8 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Divider, Spinner, Button } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
-import HostControls from "./HostControls";
+import HostControlButton from "./HostControlButton";
+import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
 
 type Props = {
   onStartGame: () => void;
@@ -21,7 +22,11 @@ export default function RoomPreview({ onStartGame }: Props) {
 
       {amIConnected && (
         <>
-          {amIHost && <HostControls />}
+          {amIHost && (
+            <HeaderContainer>
+              <HostControlButton />
+            </HeaderContainer>
+          )}
 
           <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
             <h5>Configurações da sala</h5>

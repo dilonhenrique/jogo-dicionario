@@ -2,10 +2,12 @@ import { useGame } from "@/lib/contexts/GameContext"
 import FakeStage from "./Stages/FakeStage";
 import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
-import PlayersDrawer from "./PlayersDrawer";
+import PlayersDrawerButton from "./PlayersDrawer";
 import StatusBar from "./StatusBar";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
+import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
+import HostControlButton from "../Room/HostControlButton";
 
 export default function InGame() {
   const { user } = useSession();
@@ -25,7 +27,10 @@ export default function InGame() {
         </div>
       )}
 
-      <PlayersDrawer />
+      <HeaderContainer>
+        {amIHost && <HostControlButton />}
+        <PlayersDrawerButton />
+      </HeaderContainer>
 
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
