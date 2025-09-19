@@ -21,33 +21,37 @@ export default function RoomPreview({ onStartGame }: Props) {
 
       {amIConnected && (
         <>
-          <HostControls />
-          
-          <div className="border border-foreground-100 p-4 rounded-xl">
+          {amIHost && <HostControls />}
+
+          <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
             <h5>Configurações da sala</h5>
-            <div className="flex flex-col gap-2 text-sm">
-              <p>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</p>
-              <p>• Jogo termina com pontuação: {configs.enableMaxPoints ? `Sim (${configs.maxPoints} pontos)` : "Não"}</p>
-            </div>
+            <ul className="flex flex-col gap-1 text-sm">
+              <li>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</li>
+              <li>• Jogo termina com pontuação: {configs.enableMaxPoints ? `Sim (${configs.maxPoints} pontos)` : "Não"}</li>
+            </ul>
           </div>
 
           {amIHost && (
-            <div className="border border-foreground-100 p-4 rounded-xl">
+            <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2 items-start">
               <h5>Iniciar Jogo</h5>
-              <p className="text-sm text-foreground-600 mb-4">
-                Certifique-se de que todos os jogadores estão prontos.
-              </p>
-              <Button 
-                color="primary" 
+
+              <div className="mb-2">
+                <p className="text-sm text-foreground-600">
+                  Certifique-se de que todos os jogadores estão prontos.
+                </p>
+                <p className="text-xs text-foreground-500 italic">
+                  Depois de iniciada a partida, nenhum jogador pode entrar
+                </p>
+              </div>
+
+              <Button
+                color="primary"
                 size="lg"
                 onPress={onStartGame}
                 isDisabled={onlinePlayers.length < 2}
               >
                 Iniciar Jogo
               </Button>
-              <p className="text-xs text-foreground-500 italic mt-2">
-                Depois de iniciada a partida, nenhum jogador pode entrar
-              </p>
             </div>
           )}
 

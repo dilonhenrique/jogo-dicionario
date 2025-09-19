@@ -5,7 +5,7 @@ import Container from "@/lib/components/ui/Container/Container"
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { Room as RoomType } from "@/types/room";
-import { Button, Divider, Form, Input, Spinner } from "@heroui/react";
+import { addToast, Button, Divider, Form, Input, Spinner } from "@heroui/react";
 import { useIsClient } from "usehooks-ts";
 
 type Props = {
@@ -30,8 +30,13 @@ export default function RoomPage({ room }: Props) {
               className="flex flex-col"
               action={async (formData) => {
                 const name = formData.get("name");
-                if (typeof name === "string") {
+                if (typeof name === "string" && name.length > 3) {
                   createUser({ name });
+                } else {
+                  addToast({
+                    color: "danger",
+                    title: "Nome inválido",
+                  })
                 }
               }}
             >

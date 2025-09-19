@@ -81,7 +81,7 @@ export default function CreateRoomForm({ onCancel }: Props) {
         )}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex mt-2 gap-2">
         <Button type="submit" color="primary">
           Criar e entrar
         </Button>
