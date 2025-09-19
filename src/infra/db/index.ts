@@ -1,10 +1,8 @@
 import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import type { Database } from "./types";
-import dotenv from "dotenv";
 
-const envs = dotenv.config();
-const connectionString = envs.parsed?.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 
 let _db: Kysely<Database> | undefined;
 
