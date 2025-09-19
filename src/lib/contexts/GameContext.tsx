@@ -86,7 +86,7 @@ function GameProvider({ children, configs, initialState }: Props) {
       const timeoutId = setTimeout(saveState, 500);
       return () => clearTimeout(timeoutId);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, currentRound, votes, code, gameState]);
 
   function addFakeWord(definition: string) {

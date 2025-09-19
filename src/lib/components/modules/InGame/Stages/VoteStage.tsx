@@ -57,7 +57,10 @@ export default function VoteStage() {
           <Button type="submit" color="primary" isDisabled={!value || hasVoted}>
             Confirmar voto
           </Button>
-          {hasVoted && <Button onPress={actions.removeVote}>
+          {hasVoted && <Button onPress={() => {
+            actions.removeVote();
+            setVoted(false);
+          }}>
             Cancelar voto
           </Button>}
         </>

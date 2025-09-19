@@ -8,7 +8,7 @@ import RoomPreview from "./RoomPreview";
 import { gameSessionService } from "@/server/services/gameSession";
 
 export default function Room() {
-  const { channel, gameHasStarted, startGame, code, configs } = useRoomChannel();
+  const { channel, gameHasStarted, startGame, code, configs, onlinePlayers } = useRoomChannel();
   const [initialState, setInitialState] = useState<Partial<GameState>>();
 
   async function hostStartNewGame() {
@@ -20,16 +20,16 @@ export default function Room() {
     }
 
     const initialGameState: GameState = {
-      players: [],
+      players: onlinePlayers.map(p => ({ ...p, points: 0 })),
       stage: hostChooseWord ? "word_pick" : "fake",
       currentRound: word ? { word, fakes: [] } : null,
       roundHistory: [],
       votes: [],
     };
 
-    await gameSessionService.create({ 
-      roomCode: code, 
-      initialState: initialGameState 
+    await gameSessionService.create({
+      roomCode: code,
+      initialState: initialGameState
     });
 
     setInitialState(initialGameState);
@@ -41,7 +41,7 @@ export default function Room() {
       try {
         const session = await gameSessionService.get(code);
         if (session) {
-          setInitialState(session.game_state as GameState);
+          setInitialState(session.game_state as GameState); // TODO: maybe this is wrongly placed
           startGame();
         }
       } catch (error) {

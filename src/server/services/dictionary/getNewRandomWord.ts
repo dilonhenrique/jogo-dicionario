@@ -5,7 +5,7 @@ import { WordDictionary } from "@/types/game";
 import { capitalize } from "lodash";
 
 export default async function getNewRandomWord(quantity = 1): Promise<WordDictionary[]> {
-  const random = await wordRepo.pickRandom({ difficulties: ["insane"], limit: quantity });
+  const random = await wordRepo.pickRandom({ difficulties: ["insane"], limit: quantity, pos: ["adj", "noun"] });
 
   return random.map(w => ({
     id: w.id,

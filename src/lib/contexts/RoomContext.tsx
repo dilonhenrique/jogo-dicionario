@@ -55,6 +55,11 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: 'UPDATE', table: 'rooms', filter: `code=eq.${room.code}` },
         (payload) => { setHostId(payload.new.host_user_id) }
       )
+      // .on(
+      //   "postgres_changes",
+      //   { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+      //   (payload) => { console.log(payload) }
+      // )
       .subscribe(async (status, err) => {
         if (err) console.error(err);
 
