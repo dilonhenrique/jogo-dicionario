@@ -7,7 +7,7 @@ import { useSession } from "@/lib/contexts/SessionContext";
 
 export default function HostControls() {
   const { user: currentUser } = useSession();
-  const { onlinePlayers, code, channel } = useRoomChannel();
+  const { onlinePlayers, code, amIHost } = useRoomChannel();
   const [isTransferring, setIsTransferring] = useState(false);
 
   const handleTransferHost = async (newHostId: string) => {
@@ -18,13 +18,7 @@ export default function HostControls() {
 
     setIsTransferring(true);
     try {
-      await transferHost(code, newHostId, newHost.name);
-
-      channel.send({
-        type: "broadcast",
-        event: "host-transferred",
-        payload: { newHostId }
-      });
+      await transferHost({ code, host: newHost });
     } catch (error) {
       console.error("Erro ao transferir host:", error);
     } finally {
@@ -32,7 +26,7 @@ export default function HostControls() {
     }
   };
 
-  if (!currentUser.isHost) return null;
+  if (!amIHost) return null;
 
   const eligiblePlayers = onlinePlayers.filter(p => p.id !== currentUser.id);
 

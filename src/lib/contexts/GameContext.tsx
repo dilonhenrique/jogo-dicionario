@@ -36,7 +36,7 @@ type Props = PropsWithChildren & {
 
 function GameProvider({ children, configs, initialState }: Props) {
   const { user: currentUser } = useSession();
-  const { channel, code } = useRoomChannel();
+  const { channel, code, amIHost } = useRoomChannel();
 
   const {
     stage,
@@ -56,7 +56,7 @@ function GameProvider({ children, configs, initialState }: Props) {
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
 
-  const userLatest = useLatest(currentUser);
+  const amIHostLatest = useLatest(amIHost);
   const gameState = useLatest<GameState>({
     players,
     stage,
@@ -74,7 +74,7 @@ function GameProvider({ children, configs, initialState }: Props) {
   })
 
   useEffect(() => {
-    if (userLatest.current.isHost) {
+    if (amIHostLatest.current) {
       const saveState = async () => {
         try {
           await updateGameState(code, gameState.current);
@@ -86,7 +86,8 @@ function GameProvider({ children, configs, initialState }: Props) {
       const timeoutId = setTimeout(saveState, 500);
       return () => clearTimeout(timeoutId);
     }
-  }, [stage, currentRound, votes, code, userLatest, gameState]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stage, currentRound, votes, code, gameState]);
 
   function addFakeWord(definition: string) {
     addFakeWordForUser({ definition, author: currentUser, });

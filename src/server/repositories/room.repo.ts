@@ -41,12 +41,20 @@ export async function getRoom(code: string): Promise<Room | undefined> {
     .executeTakeFirst();
 }
 
-export async function transferHost(code: string, newHostUserId: string, newHostUserName: string) {
+type TransferInput = {
+  code: string;
+  host: {
+    id: string;
+    name: string;
+  }
+}
+
+export async function transferHost({ code, host }: TransferInput) {
   await db
     .updateTable("rooms")
     .set({
-      host_user_id: newHostUserId,
-      host_user_name: newHostUserName,
+      host_user_id: host.id,
+      host_user_name: host.name,
     })
     .where("code", "=", code)
     .execute();

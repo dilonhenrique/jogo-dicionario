@@ -4,14 +4,13 @@ import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
 import PlayersDrawer from "./PlayersDrawer";
 import StatusBar from "./StatusBar";
-import { useSession } from "@/lib/contexts/SessionContext";
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
 
 export default function InGame() {
-  const { user: currentUser } = useSession();
-  const { stage, players, currentRound } = useGame();
+  const { amIHost, amIConnected } = useRoomChannel();
+  const { stage, currentRound } = useGame();
 
-
-  if (!currentUser.isHost && !players.some(p => p.id === currentUser.id)) {
+  if (!amIHost && !amIConnected) {
     return <p>A partida já começou (sem você)</p>;
   }
 

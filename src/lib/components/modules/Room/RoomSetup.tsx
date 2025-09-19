@@ -2,7 +2,6 @@ import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { GameConfig } from "@/types/game";
 import { Button, Form, Input, Switch } from "@heroui/react";
-import { Info } from "lucide-react";
 import { useState } from "react";
 import HostControls from "./HostControls";
 
@@ -52,7 +51,6 @@ export default function RoomSetup({ hostStartNewGame }: Props) {
           </Button>
 
           <p className="text-xs text-foreground-500 italic flex items-start gap-1 ms-1">
-            <Info size={14} />
             Depois de iniciada a partida, nenhum jogador pode entrar
           </p>
         </div>
