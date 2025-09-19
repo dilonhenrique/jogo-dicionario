@@ -7,7 +7,7 @@ import { useRoomChannel } from "./RoomContext";
 import useGameController from "../hooks/useGameController";
 import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
-import { updateGameState } from "@/server/services/gameSession/gameSession.service";
+import { gameSessionService } from "@/server/services/gameSession";
 import { useSession } from "./SessionContext";
 
 type GameContextValue = {
@@ -77,7 +77,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     if (amIHostLatest.current) {
       const saveState = async () => {
         try {
-          await updateGameState(code, gameState.current);
+          await gameSessionService.updateState(code, gameState.current);
         } catch (error) {
           console.error("Erro ao salvar estado do jogo:", error);
         }

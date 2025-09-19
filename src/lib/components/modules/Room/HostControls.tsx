@@ -2,7 +2,7 @@ import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Select, SelectItem } from "@heroui/react";
 import { Crown } from "lucide-react";
 import { useState } from "react";
-import { transferHost } from "@/server/services/room/room.service";
+import { roomService } from "@/server/services/room";
 import { useSession } from "@/lib/contexts/SessionContext";
 
 export default function HostControls() {
@@ -18,7 +18,7 @@ export default function HostControls() {
 
     setIsTransferring(true);
     try {
-      await transferHost({ code, host: newHost });
+      await roomService.transfer({ code, host: newHost });
     } catch (error) {
       console.error("Erro ao transferir host:", error);
     } finally {

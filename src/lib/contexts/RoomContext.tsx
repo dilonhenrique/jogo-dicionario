@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
-import { joinRoomChannel } from "@/server/services/room/room.service";
+import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
@@ -39,7 +39,7 @@ function RoomChannelProvider({ children, room }: Props) {
   const amIConnected = users.some(u => u.id === user.id);
 
   useEffect(() => {
-    const roomChannel = joinRoomChannel({ code: room.code, user });
+    const roomChannel = roomService.joinRoomChannel({ code: room.code, user });
 
     roomChannel
       .on("presence", { event: "sync" }, async () => {

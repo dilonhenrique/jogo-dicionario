@@ -1,5 +1,5 @@
 import RoomPage from "@/lib/pages/Room/RoomPage";
-import { findByCode } from "@/server/services/room/room.service";
+import { roomService } from "@/server/services/room";
 import { notFound } from "next/navigation";
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const roomCode = (await params).roomCode;
-  const room = await findByCode(roomCode);
+  const room = await roomService.findByCode(roomCode);
 
   if (!room) notFound();
 

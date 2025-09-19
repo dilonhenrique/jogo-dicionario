@@ -1,12 +1,12 @@
 #!/usr/bin/env tsx
 
-import { cleanupExpiredRooms } from '../src/server/repositories/room.repo';
+import { roomService } from '../src/server/services/room';
 
 async function cleanup() {
   console.log('🧹 Iniciando limpeza de dados expirados...');
   
   try {
-    await cleanupExpiredRooms();
+    await roomService.cleanup();
     console.log('✅ Limpeza concluída com sucesso!');
   } catch (error) {
     console.error('❌ Erro durante a limpeza:', error);

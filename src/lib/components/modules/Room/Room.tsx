@@ -4,9 +4,9 @@ import { GameProvider } from "@/lib/contexts/GameContext";
 import { GameConfig, GameState, WordDictionary } from "@/types/game";
 import { useEffect, useState } from "react";
 import { DEFAULT_CONFIG } from "@/lib/consts/defaultConfig";
-import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
+import { dictionaryService } from "@/server/services/dictionary";
 import RoomPreview from "./RoomPreview";
-import { createGameSession, getGameSession } from "@/server/services/gameSession/gameSession.service";
+import { gameSessionService } from "@/server/services/gameSession";
 
 export default function Room() {
   const { channel, gameHasStarted, startGame, code } = useRoomChannel();
@@ -21,7 +21,7 @@ export default function Room() {
     let word: WordDictionary | null = null;
 
     if (!hostChooseWord) {
-      [word] = await getNewRandomWord();
+      [word] = await dictionaryService.getNewRandomWord();
     }
 
     const initialGameState: GameState = {
@@ -32,7 +32,7 @@ export default function Room() {
       votes: [],
     };
 
-    await createGameSession({ roomCode: code, configs: finalConfig, initialState: initialGameState });
+    await gameSessionService.create({ roomCode: code, configs: finalConfig, initialState: initialGameState });
 
     setConfigs(finalConfig);
     setInitialState(initialGameState);
@@ -42,7 +42,7 @@ export default function Room() {
   useEffect(() => {
     const loadGameSession = async () => {
       try {
-        const session = await getGameSession(code);
+        const session = await gameSessionService.get(code);
         if (session) {
           setConfigs(session.configs as GameConfig);
           setInitialState(session.game_state as GameState);

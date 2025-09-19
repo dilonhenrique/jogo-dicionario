@@ -1,24 +1,22 @@
 import { useGame } from "@/lib/contexts/GameContext"
-import { useSession } from "@/lib/contexts/SessionContext";
+import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import useFirstRender from "@/lib/hooks/useFirstRender";
-import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
+import { dictionaryService } from "@/server/services/dictionary";
 import { WordDictionary } from "@/types/game";
 import { Button, Spinner } from "@heroui/react";
 import { RefreshCcw } from "lucide-react";
 import { useState, useTransition } from "react";
 
 export default function WordSelector() {
-  const { user: currentUser } = useSession();
+  const { amIHost } = useRoomChannel();
   const { actions } = useGame();
 
   const [words, setWords] = useState<WordDictionary[]>([]);
   const [isLoading, startLoad] = useTransition();
 
-  const isHost = currentUser.isHost;
-
   function getRandomWords() {
     startLoad(async () => {
-      const words = await getNewRandomWord(4);
+      const words = await dictionaryService.getNewRandomWord(4);
       setWords(words);
     });
   }
@@ -27,9 +25,9 @@ export default function WordSelector() {
 
   return (
     <div className="flex flex-col gap-2">
-      {isHost && <h3>Escolha uma palavra:</h3>}
+      {amIHost && <h3>Escolha uma palavra:</h3>}
 
-      {isHost && (
+      {amIHost && (
         <>
           {isLoading && <Spinner />}
           {!isLoading && (

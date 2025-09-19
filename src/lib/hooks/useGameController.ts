@@ -5,7 +5,7 @@ import { useGameRound } from "./useGameRound";
 import { useGameStage } from "./useGameStage";
 import { v4 } from "uuid";
 import { User } from "@/types/user";
-import { getNewRandomWord } from "@/server/services/dictionary/dictionary.service";
+import { dictionaryService } from "@/server/services/dictionary";
 
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { stage, setStage } = useGameStage(initialState?.stage);
@@ -44,7 +44,7 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     if (configs.enableHostChooseWord) {
       setStage("word_pick");
     } else {
-      const [newWord] = await getNewRandomWord();
+      const [newWord] = await dictionaryService.getNewRandomWord();
       setNewWordAndResetVotes(newWord);
       setStage("fake");
     }

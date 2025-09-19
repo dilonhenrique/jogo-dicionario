@@ -3,7 +3,7 @@
 import Container from "@/lib/components/ui/Container/Container";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { generateRoomCode, isValidRoomCode } from "@/lib/utils/generateRoomCode";
-import { createRoom } from "@/server/services/room/room.service";
+import { roomService } from "@/server/services/room";
 import { Button, Form, Input } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -16,7 +16,7 @@ export default function HomePage() {
 
   async function createNewRoom() {
     const code = generateRoomCode();
-    await createRoom({ code, host: user });
+    await roomService.create({ code, host: user });
 
     router.push(`/r/${code}`);
   }
