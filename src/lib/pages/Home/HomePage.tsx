@@ -4,6 +4,7 @@ import { Button, Divider } from "@heroui/react";
 import { useState } from "react";
 import CreateRoomForm from "@/lib/components/modules/Room/CreateRoomForm";
 import GoToRoomForm from "@/lib/components/modules/Room/GoToRoomForm";
+import RulesCarousel from "@/lib/components/modules/Rules/RulesCarousel";
 import PageContainer from "@/lib/components/ui/Container/PageContainer";
 
 export default function HomePage() {
@@ -11,9 +12,11 @@ export default function HomePage() {
 
   return (
     <PageContainer>
-      <h1>
+      <h1 className="text-center">
         Jogo do dicionário
       </h1>
+
+      <RulesCarousel className="mb-8 mt-4" />
 
       <div className="flex flex-col gap-2">
         <h4>Já tem o código?</h4>
