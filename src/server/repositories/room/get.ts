@@ -6,7 +6,7 @@ import { RoomComplete } from "@/infra/db/types";
 export default async function get(code: string): Promise<RoomComplete | undefined> {
   return await db
     .selectFrom("rooms")
-    .innerJoin("game_sessions", "game_sessions.room_code", "rooms.code")
+    .leftJoin("game_sessions", "game_sessions.room_code", "rooms.code")
     .select([
       "code",
       "host_user_id",
