@@ -56,6 +56,7 @@ export default function StatusBar() {
           maxValue={100}
           color={isIndeterminate ? "default" : "success"}
           className="absolute bottom-0 right-0 left-0"
+          aria-label="Status do estágio atual da rodada"
         />
       </div>
     </div>
