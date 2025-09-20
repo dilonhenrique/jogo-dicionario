@@ -1,5 +1,5 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { Divider, Spinner, Button } from "@heroui/react";
+import { Spinner, Button } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
 import HostControlButton from "../Host/HostControlButton";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
@@ -40,14 +40,6 @@ export default function RoomPreview({ onStartGame }: Props) {
             </HeaderContainer>
           )}
 
-          <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
-            <h4>Configurações da sala</h4>
-            <ul className="flex flex-col gap-1 text-sm">
-              <li>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</li>
-              <li>• Jogo termina com pontuação: {configs.enableMaxPoints ? `Sim (${configs.maxPoints} pontos)` : "Não"}</li>
-            </ul>
-          </div>
-
           {amIHost && (
             <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2 items-start">
               <h4 className="flex gap-2 items-center">
@@ -87,12 +79,21 @@ export default function RoomPreview({ onStartGame }: Props) {
           )}
 
           {!amIHost && (
-            <p className="text-foreground-400 text-center">
-              Aguardando host iniciar partida...
-            </p>
+            <div className="py-4 flex flex-col items-center justify-center">
+              <Spinner variant="dots" color="warning" />
+              <p className="text-foreground-400 text-center">
+                Aguardando host iniciar partida...
+              </p>
+            </div>
           )}
 
-          <Divider />
+          <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
+            <h4>Configurações da sala</h4>
+            <ul className="flex flex-col gap-1 text-sm">
+              <li>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</li>
+              <li>• Jogo termina com pontuação: {configs.enableMaxPoints ? `Sim (${configs.maxPoints} pontos)` : "Não"}</li>
+            </ul>
+          </div>
         </>
       )}
 
