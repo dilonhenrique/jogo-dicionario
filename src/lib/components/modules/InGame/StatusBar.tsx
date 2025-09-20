@@ -42,19 +42,21 @@ export default function StatusBar() {
     }
   }, [currentRound, players, stage, votes]);
 
+  const isIndeterminate = percentage === undefined;
+
   return (
     <div className="absolute bottom-0 right-0 left-0 p-10">
       <div className="border border-foreground-200 bg-foreground-50 p-6 rounded-xl text-center relative overflow-hidden">
         <h6 className="text-foreground-600">{label}</h6>
-        {percentage !== undefined && (
-          <Progress
-            size="sm"
-            value={percentage}
-            maxValue={100}
-            color="success"
-            className="absolute bottom-0 right-0 left-0"
-          />
-        )}
+
+        <Progress
+          size="sm"
+          value={percentage}
+          isIndeterminate={isIndeterminate}
+          maxValue={100}
+          color={isIndeterminate ? "default" : "success"}
+          className="absolute bottom-0 right-0 left-0"
+        />
       </div>
     </div>
   );
