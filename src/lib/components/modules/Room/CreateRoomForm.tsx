@@ -3,7 +3,7 @@ import { useSession } from "@/lib/contexts/SessionContext";
 import { generateRoomCode } from "@/lib/utils/generateRoomCode";
 import { roomService } from "@/server/services/room";
 import { GameConfig } from "@/types/game";
-import { Button, Form, Input, Switch } from "@heroui/react";
+import { addToast, Button, Form, Input, Switch } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -36,8 +36,16 @@ export default function CreateRoomForm({ onCancel }: Props) {
     };
 
     const roomCode = generateRoomCode();
-    await roomService.create({ code: roomCode, host: currentUser, configs });
-    router.push(`/r/${roomCode}`);
+    const room = await roomService.create({ code: roomCode, host: currentUser, configs });
+
+    if (room) {
+      router.push(`/r/${room.code}`);
+    } else {
+      addToast({
+        title: "Erro ao criar sala",
+        color: "danger",
+      })
+    }
   }
 
   return (
