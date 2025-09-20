@@ -1,57 +1,23 @@
 "use client";
 
-import Container from "@/lib/components/ui/Container/Container";
-import { isValidRoomCode } from "@/lib/utils/generateRoomCode";
-import { addToast, Button, Divider, Form, Input } from "@heroui/react";
-import { useRouter } from "next/navigation";
+import { Button, Divider } from "@heroui/react";
 import { useState } from "react";
 import CreateRoomForm from "@/lib/components/modules/Room/CreateRoomForm";
-import { roomService } from "@/server/services/room";
+import GoToRoomForm from "@/lib/components/modules/Room/GoToRoomForm";
+import PageContainer from "@/lib/components/ui/Container/PageContainer";
 
 export default function HomePage() {
-  const router = useRouter();
-  const [code, setCode] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   return (
-    <Container>
+    <PageContainer>
       <h1>
         Jogo do dicionário
       </h1>
 
       <div className="flex flex-col gap-2">
         <h4>Já tem o código?</h4>
-        <Form
-          className="flex-row"
-          onSubmit={async (e) => {
-            e.preventDefault();
-
-            const isValid = isValidRoomCode(code);
-
-            if (isValid) {
-              const room = await roomService.findByCode(code);
-
-              if (room) {
-                router.push(`/r/${room.code}`);
-                return;
-              }
-            }
-
-            addToast({
-              color: "danger",
-              title: isValid ? "Esta sala não existe" : "Código da sala inválido"
-            });
-          }}
-        >
-          <Input
-            placeholder="Código da sala"
-            name="code"
-            validate={(data) => isValidRoomCode(data) ? true : "Código inválido"}
-            value={code}
-            onValueChange={setCode}
-          />
-          <Button type="submit" isDisabled={!isValidRoomCode(code)}>Entrar</Button>
-        </Form>
+        <GoToRoomForm />
       </div>
 
       <div className="flex gap-4 items-center w-full">
@@ -74,6 +40,6 @@ export default function HomePage() {
       ) : (
         <CreateRoomForm onCancel={() => setShowCreateForm(false)} />
       )}
-    </Container>
+    </PageContainer>
   )
 }

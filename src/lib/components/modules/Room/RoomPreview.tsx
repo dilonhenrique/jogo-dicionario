@@ -20,8 +20,7 @@ export default function RoomPreview({ onStartGame }: Props) {
     isClient
       ? `${window.location.protocol}//${window.location.host}/r/${code}`
       : `/r/${code}`
-  ),
-    [isClient, code]);
+  ), [isClient, code]);
 
   return (
     <div className="flex flex-col gap-4">

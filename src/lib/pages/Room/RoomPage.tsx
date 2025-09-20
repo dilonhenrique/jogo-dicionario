@@ -1,7 +1,7 @@
 "use client";
 
 import Room from "@/lib/components/modules/Room/Room";
-import Container from "@/lib/components/ui/Container/Container"
+import PageContainer from "@/lib/components/ui/Container/PageContainer";
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { Room as RoomType } from "@/types/room";
@@ -18,7 +18,7 @@ export default function RoomPage({ room }: Props) {
   const isClient = useIsClient();
 
   return (
-    <Container className="relative min-h-dvh">
+    <PageContainer className="relative min-h-dvh">
       <h1 className="!text-large text-primary my-2">Sala #{room.code}</h1>
 
       <Divider className="mb-2" />
@@ -61,6 +61,6 @@ export default function RoomPage({ room }: Props) {
               <Room />
             </RoomChannelProvider>
           )}
-    </Container>
+    </PageContainer>
   )
 }
