@@ -3,13 +3,25 @@ import { Divider, Spinner, Button } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
 import HostControlButton from "./HostControlButton";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
+import CopyButton from "../../ui/CopyButton/CopyButton";
+import { useIsClient } from "usehooks-ts";
+import { useMemo } from "react";
+import { CopyIcon, SwordsIcon } from "lucide-react";
 
 type Props = {
   onStartGame: () => void;
 }
 
 export default function RoomPreview({ onStartGame }: Props) {
-  const { onlinePlayers, amIConnected, amIHost, configs } = useRoomChannel();
+  const { onlinePlayers, amIConnected, amIHost, configs, code } = useRoomChannel();
+  const isClient = useIsClient();
+
+  const roomUrl = useMemo(() => (
+    isClient
+      ? `${window.location.protocol}//${window.location.host}/r/${code}`
+      : `/r/${code}`
+  ),
+    [isClient, code]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -29,7 +41,7 @@ export default function RoomPreview({ onStartGame }: Props) {
           )}
 
           <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
-            <h5>Configurações da sala</h5>
+            <h4>Configurações da sala</h4>
             <ul className="flex flex-col gap-1 text-sm">
               <li>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</li>
               <li>• Jogo termina com pontuação: {configs.enableMaxPoints ? `Sim (${configs.maxPoints} pontos)` : "Não"}</li>
@@ -38,7 +50,7 @@ export default function RoomPreview({ onStartGame }: Props) {
 
           {amIHost && (
             <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2 items-start">
-              <h5>Iniciar Jogo</h5>
+              <h4>Iniciar Jogo</h4>
 
               <div className="mb-2">
                 <p className="text-sm text-foreground-600">
@@ -49,14 +61,26 @@ export default function RoomPreview({ onStartGame }: Props) {
                 </p>
               </div>
 
-              <Button
-                color="primary"
+              <div className="flex gap-2 w-full">
+                <Button
+                  color="primary"
+                  size="lg"
+                  onPress={onStartGame}
+                  className="grow"
+                  isDisabled={onlinePlayers.length < 2}
+                  startContent={<SwordsIcon size={20} />}
+                >
+                  Iniciar Jogo
+                </Button>
+
+                <CopyButton 
+                copyContent={roomUrl} 
+                startContent={<CopyIcon size={18} />} 
                 size="lg"
-                onPress={onStartGame}
-                isDisabled={onlinePlayers.length < 2}
-              >
-                Iniciar Jogo
-              </Button>
+                >
+                  Convidar
+                </CopyButton>
+              </div>
             </div>
           )}
 
@@ -71,7 +95,7 @@ export default function RoomPreview({ onStartGame }: Props) {
       )}
 
       <div className="flex flex-col gap-2">
-        <h5>Participantes ({onlinePlayers.length})</h5>
+        <h4>Participantes ({onlinePlayers.length})</h4>
         <PlayerList players={onlinePlayers} />
       </div>
     </div>
