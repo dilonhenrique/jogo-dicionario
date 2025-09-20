@@ -6,6 +6,7 @@ import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { Room as RoomType } from "@/types/room";
 import { addToast, Button, Divider, Form, Input, Spinner } from "@heroui/react";
+import { ArrowRight } from "lucide-react";
 import { useIsClient } from "usehooks-ts";
 
 type Props = {
@@ -40,9 +41,19 @@ export default function RoomPage({ room }: Props) {
                 }
               }}
             >
-              <h5>Identifique-se</h5>
-              <Input name="name" placeholder="Seu nome" size="lg" />
-              <Button type="submit" color="primary">Entrar</Button>
+              <h4>Identifique-se para entrar</h4>
+
+              <div className="flex gap-2 w-full">
+                <Input name="name" placeholder="Seu nome" size="lg" />
+                <Button
+                  type="submit"
+                  color="primary"
+                  size="lg"
+                  endContent={<ArrowRight className="shrink-0" size={18} />}
+                >
+                  Entrar
+                </Button>
+              </div>
             </Form>
           )
           : (
