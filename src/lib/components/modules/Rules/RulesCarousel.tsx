@@ -69,28 +69,26 @@ export default function RulesCarousel({ autoplayInterval = 8000, className }: Pr
     return () => controls.stop();
   }, [autoplayInterval, isAutoplayActive, currentSlide, progressValue]);
 
-  const goToSlide = (index: number) => {
+  function brieflyDisableAutoplay() {
     progressValue.set(0);
     setProgress(0);
+    setIsAutoplayActive(false);
+    setTimeout(() => setIsAutoplayActive(true), 10000);
+  }
+
+  function goToSlide(index: number) {
+    brieflyDisableAutoplay();
     setCurrentSlide(index);
-    setIsAutoplayActive(false);
-    setTimeout(() => setIsAutoplayActive(true), 10000);
   };
 
-  const goToPrevious = () => {
-    progressValue.set(0);
-    setProgress(0);
+  function goToPrevious() {
+    brieflyDisableAutoplay();
     setCurrentSlide((prev) => (prev - 1 + rulesData.length) % rulesData.length);
-    setIsAutoplayActive(false);
-    setTimeout(() => setIsAutoplayActive(true), 10000);
   };
 
-  const goToNext = () => {
-    progressValue.set(0);
-    setProgress(0);
+  function goToNext() {
+    brieflyDisableAutoplay();
     setCurrentSlide((prev) => (prev + 1) % rulesData.length);
-    setIsAutoplayActive(false);
-    setTimeout(() => setIsAutoplayActive(true), 10000);
   };
 
   const currentRule = rulesData[currentSlide];
