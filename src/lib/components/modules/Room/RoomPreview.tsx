@@ -54,7 +54,7 @@ export default function RoomPreview({ onStartGame }: Props) {
                 </p>
               </div>
 
-              <div className="flex gap-2 w-full">
+              <div className="flex flex-wrap gap-2 w-full">
                 <Button
                   color="primary"
                   size="lg"
@@ -70,6 +70,7 @@ export default function RoomPreview({ onStartGame }: Props) {
                   copyContent={roomUrl}
                   startContent={<CopyIcon size={18} />}
                   size="lg"
+                  className="grow sm:grow-0"
                 >
                   Convidar
                 </CopyButton>
