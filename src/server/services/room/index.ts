@@ -1,5 +1,5 @@
 import joinRoomChannel from "./joinRoomChannel";
-import findByCode from "./findByCode";
+import get from "./get";
 import create from "./create";
 import transfer from "./transfer";
 import extend from "./extend";
@@ -10,7 +10,7 @@ import cleanup from "./cleanup";
 
 export const roomService = {
   joinRoomChannel,
-  findByCode,
+  get,
   create,
   transfer,
   extend,

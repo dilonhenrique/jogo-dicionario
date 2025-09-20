@@ -76,5 +76,7 @@ export type Room = Selectable<RoomsTable>;
 export type NewRoom = Insertable<RoomsTable>;
 export type UpdateRoom = Updateable<RoomsTable>;
 
+export type RoomComplete = Room & { game_state?: GameSession["game_state"] };
+
 export type WordVote = Selectable<WordVotesTable>;
 export type NewWordVote = Insertable<WordVotesTable>;

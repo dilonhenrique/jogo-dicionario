@@ -8,7 +8,7 @@ type Props = {
 
 export default async function Page({ params }: Props) {
   const roomCode = (await params).roomCode;
-  const room = await roomService.findByCode(roomCode);
+  const room = await roomService.get(roomCode);
 
   if (!room) notFound();
 

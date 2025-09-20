@@ -14,7 +14,7 @@ export default function GoToRoomForm() {
     const isValid = isValidRoomCode(code);
 
     if (isValid) {
-      const room = await roomService.findByCode(code);
+      const room = await roomService.get(code);
 
       if (room) {
         router.push(`/r/${room.code}`);
