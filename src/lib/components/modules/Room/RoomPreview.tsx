@@ -1,12 +1,12 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Divider, Spinner, Button } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
-import HostControlButton from "./HostControlButton";
+import HostControlButton from "../Host/HostControlButton";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
 import CopyButton from "../../ui/CopyButton/CopyButton";
 import { useIsClient } from "usehooks-ts";
 import { useMemo } from "react";
-import { CopyIcon, SwordsIcon } from "lucide-react";
+import { CopyIcon, Crown, SwordsIcon } from "lucide-react";
 
 type Props = {
   onStartGame: () => void;
@@ -50,7 +50,9 @@ export default function RoomPreview({ onStartGame }: Props) {
 
           {amIHost && (
             <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2 items-start">
-              <h4>Iniciar Jogo</h4>
+              <h4 className="flex gap-2 items-center">
+                Iniciar Jogo <Crown className="text-warning" size={16} />
+              </h4>
 
               <div className="mb-2">
                 <p className="text-sm text-foreground-600">
@@ -73,10 +75,10 @@ export default function RoomPreview({ onStartGame }: Props) {
                   Iniciar Jogo
                 </Button>
 
-                <CopyButton 
-                copyContent={roomUrl} 
-                startContent={<CopyIcon size={18} />} 
-                size="lg"
+                <CopyButton
+                  copyContent={roomUrl}
+                  startContent={<CopyIcon size={18} />}
+                  size="lg"
                 >
                   Convidar
                 </CopyButton>

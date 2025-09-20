@@ -23,7 +23,7 @@ export default function PlayersDrawerButton() {
       </Tooltip>
 
       <Drawer size="sm" isOpen={isOpen} onOpenChange={setOpen}>
-        <DrawerContent className="pt-4">
+        <DrawerContent className="pt-8">
           <DrawerHeader>
             <h3>Placar</h3>
           </DrawerHeader>

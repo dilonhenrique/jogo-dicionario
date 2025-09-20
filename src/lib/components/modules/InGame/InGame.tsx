@@ -7,7 +7,7 @@ import StatusBar from "./StatusBar";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
-import HostControlButton from "../Room/HostControlButton";
+import HostControlButton from "../Host/HostControlButton";
 
 export default function InGame() {
   const { user } = useSession();
