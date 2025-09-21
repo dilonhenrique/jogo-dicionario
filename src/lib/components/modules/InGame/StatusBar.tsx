@@ -45,7 +45,7 @@ export default function StatusBar() {
   const isIndeterminate = percentage === undefined;
 
   return (
-    <div className="absolute bottom-0 right-0 left-0 p-10">
+    <div className="fixed bottom-0 w-full max-w-2xl p-10 -ms-10">
       <div className="border border-foreground-200 bg-foreground-50 p-6 rounded-xl text-center relative overflow-hidden">
         <h6 className="text-foreground-600">{label}</h6>
 
