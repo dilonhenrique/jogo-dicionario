@@ -25,6 +25,7 @@ type GameContextValue = {
     removeVote: () => void;
     checkoutCurrentRound: () => void;
     restartGame: () => void;
+    kickPlayer: (userId: string) => void;
   }
 }
 
@@ -54,6 +55,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     calculateRoundPoints,
     checkoutCurrentRound,
     restartGame,
+    kickPlayer,
   } = useGameController(configs, initialState);
 
   const amIHostLatest = useLatest(amIHost);
@@ -141,6 +143,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     removeVote,
     checkoutCurrentRound,
     restartGame,
+    kickPlayer,
   }
 
   return (<GameContext.Provider

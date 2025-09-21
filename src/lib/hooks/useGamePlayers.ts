@@ -28,5 +28,9 @@ export function useGamePlayers(initialPlayers?: GamePlayer[]) {
     setPlayers(players => (players.map(p => ({ ...p, points: 0 }))));
   }
 
-  return { players, increasePointToPlayer, resetPoints };
+  function removePlayer(userId: string) {
+    setPlayers(players => players.filter(p => p.id !== userId));
+  }
+
+  return { players, increasePointToPlayer, resetPoints, removePlayer };
 }

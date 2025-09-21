@@ -6,10 +6,13 @@ import { useGameStage } from "./useGameStage";
 import { v4 } from "uuid";
 import { User } from "@/types/user";
 import { dictionaryService } from "@/server/services/dictionary";
+import { useSession } from "../contexts/SessionContext";
+import { addToast } from "@heroui/react";
 
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
+  const { user } = useSession();
   const { stage, setStage } = useGameStage(initialState?.stage);
-  const { players, increasePointToPlayer, resetPoints } = useGamePlayers(initialState?.players);
+  const { players, increasePointToPlayer, resetPoints, removePlayer } = useGamePlayers(initialState?.players);
   const {
     currentRound,
     roundHistory,
@@ -96,6 +99,19 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     mapInput: () => undefined,
   })
 
+  const kickPlayer = useDispatcher<string>({
+    event: 'kick-player',
+    apply: (userId) => {
+      removePlayer(userId);
+      if (userId === user.id) {
+        addToast({
+          title: "Você foi removido da partida",
+          color: "danger",
+        })
+      }
+    }
+  })
+
   function calculateRoundPoints() {
     if (currentRound) {
       const votePairs = Array.from(votes.entries());
@@ -130,5 +146,6 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     addVoteForUser,
     removeVoteForUser,
     restartGame,
+    kickPlayer,
   };
 }
