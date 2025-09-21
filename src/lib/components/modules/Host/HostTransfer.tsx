@@ -1,3 +1,4 @@
+import { useGame } from "@/lib/contexts/GameContext";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { roomService } from "@/server/services/room";
@@ -8,7 +9,9 @@ import { useState } from "react";
 
 export default function HostTransfer() {
   const { user: currentUser } = useSession();
-  const { onlinePlayers, code } = useRoomChannel();
+  const { code } = useRoomChannel();
+  const { players } = useGame();
+
   const [isTransferring, setIsTransferring] = useState(false);
   const [newHost, setNewHost] = useState<Player | null>(null);
 
@@ -31,7 +34,7 @@ export default function HostTransfer() {
     }
   };
 
-  const eligiblePlayers = onlinePlayers.filter(p => p.id !== currentUser.id);
+  const eligiblePlayers = players.filter(p => p.onlineAt !== null && p.id !== currentUser.id);
 
   if (eligiblePlayers.length === 0) return null;
 

@@ -56,8 +56,6 @@ function GameProvider({ children, configs, initialState }: Props) {
     restartGame,
   } = useGameController(configs, initialState);
 
-  const playingPlayers = players.filter(p => p.onlineAt !== null);
-
   const amIHostLatest = useLatest(amIHost);
   const gameState = useLatest<GameState>({
     players,
@@ -102,25 +100,25 @@ function GameProvider({ children, configs, initialState }: Props) {
   const checkIfEverybodyAddedFake = useCallback(() => {
     if (!currentRound) return;
 
-    const totalAnswered = playingPlayers.map(p => currentRound?.fakes
+    const totalAnswered = players.map(p => currentRound?.fakes
       .some(f => f.author.id === p.id) ?? false)
       .filter(Boolean).length;
 
-    if (totalAnswered >= playingPlayers.length) {
+    if (totalAnswered >= players.length) {
       changeStage("vote");
     }
-  }, [currentRound, playingPlayers, changeStage])
+  }, [currentRound, players, changeStage])
 
   const checkIfEverybodyVoted = useCallback(() => {
     if (!currentRound) return;
 
-    const totalVotes = playingPlayers.map(p => votes.has(p.id)).filter(Boolean).length;
+    const totalVotes = players.map(p => votes.has(p.id)).filter(Boolean).length;
 
-    if (totalVotes >= playingPlayers.length) {
+    if (totalVotes >= players.length) {
       calculateRoundPoints();
       changeStage("blame");
     }
-  }, [currentRound, playingPlayers, votes, changeStage, calculateRoundPoints])
+  }, [currentRound, players, votes, changeStage, calculateRoundPoints])
 
   useEffect(() => {
     if (stage === "fake") checkIfEverybodyAddedFake();

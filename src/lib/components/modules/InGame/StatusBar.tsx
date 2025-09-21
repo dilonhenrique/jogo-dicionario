@@ -19,21 +19,19 @@ export default function StatusBar() {
 
       case "fake":
         {
-          const onlinePlayers = players.filter(p => p.onlineAt !== null);
-          const totalAnswered = onlinePlayers.map(p => currentRound?.fakes
+          const totalAnswered = players.map(p => currentRound?.fakes
             .some(f => f.author.id === p.id) ?? false)
             .filter(Boolean).length;
 
-          const percentage = (totalAnswered / onlinePlayers.length) * 100;
-          return { status: "faking", percentage, label: `Respostas enviadas: ${totalAnswered}/${onlinePlayers.length}` };
+          const percentage = (totalAnswered / players.length) * 100;
+          return { status: "faking", percentage, label: `Respostas enviadas: ${totalAnswered}/${players.length}` };
         }
 
       case "vote":
         {
-          const onlinePlayers = players.filter(p => p.onlineAt !== null);
-          const totalVotes = onlinePlayers.map(p => votes.has(p.id)).filter(Boolean).length;
-          const percentage = (totalVotes / onlinePlayers.length) * 100;
-          return { status: "voting", percentage, label: `Votos: ${totalVotes}/${onlinePlayers.length}` };
+          const totalVotes = players.map(p => votes.has(p.id)).filter(Boolean).length;
+          const percentage = (totalVotes / players.length) * 100;
+          return { status: "voting", percentage, label: `Votos: ${totalVotes}/${players.length}` };
         }
 
       case "blame":
