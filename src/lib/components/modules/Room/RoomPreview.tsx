@@ -87,7 +87,7 @@ export default function RoomPreview({ onStartGame }: Props) {
             </div>
           )}
 
-          <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2">
+          <div className="bg-content2 p-4 rounded-xl flex flex-col gap-2">
             <h4>Configurações da sala</h4>
             <ul className="flex flex-col gap-1 text-sm">
               <li>• Host escolhe palavras: {configs.enableHostChooseWord ? "Sim" : "Não"}</li>
