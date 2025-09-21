@@ -1,4 +1,4 @@
-import { GameConfig } from "./game";
+import { GameConfig, GameState } from "./game";
 
 export type Room = {
   code: string;
@@ -9,4 +9,6 @@ export type Room = {
   configs: GameConfig;
   createdAt: Date;
   expiresAt: Date;
-}
+};
+
+export type RoomComplete = Room & { session: GameState | undefined };

@@ -7,7 +7,8 @@ import StatusBar from "./StatusBar";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
-import HostControlButton from "../Room/HostControlButton";
+import HostControlButton from "../Host/HostControlButton";
+import FinishStage from "./Stages/FinishStage";
 
 export default function InGame() {
   const { user } = useSession();
@@ -34,7 +35,8 @@ export default function InGame() {
 
       {stage === "word_pick" && <WordSelector />}
       {stage === "fake" && <FakeStage />}
-      {(stage === "vote" || stage === "blame") && <VoteStage />}
+      {["vote", "blame"].includes(stage) && <VoteStage />}
+      {stage === "finishing" && <FinishStage />}
 
       <StatusBar />
     </>

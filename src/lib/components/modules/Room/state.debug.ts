@@ -1,7 +1,7 @@
 import { GameState, WordDictionary } from "@/types/game";
 
-type Testing = "none" | "fake" | "vote" | "blame-wrong" | "blame-right";
-const testing: Testing = "none";
+type Testing = "none" | "fake" | "vote" | "blame-wrong" | "blame-right" | "finishing";
+const testing: Testing = "finishing";
 
 // FOR TESTS: initialStates
 export function getInitialState(hostChooseWord: boolean, word: WordDictionary | null, myId: string) {
@@ -94,6 +94,11 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
     stage: "blame",
     votes: [[myId, word?.id ?? "46das4d6a"]],
   };
+  const finishState: Partial<GameState> = {
+    ...blameRightState,
+    stage: "finishing",
+    currentRound: undefined,
+  };
 
   const initialStates: Record<Testing, Partial<GameState>> = {
     none: {
@@ -104,6 +109,7 @@ export function getInitialState(hostChooseWord: boolean, word: WordDictionary | 
     vote: voteState,
     "blame-right": blameRightState,
     "blame-wrong": blameWrongState,
+    finishing: finishState,
   }
 
   return initialStates[testing];

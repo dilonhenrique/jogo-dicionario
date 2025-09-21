@@ -1,10 +1,10 @@
 "use server";
 
 import { roomRepo } from "@/server/repositories/room";
-import { Room } from "@/types/room";
-import { GameConfig } from "@/types/game";
+import { RoomComplete } from "@/types/room";
+import { GameConfig, GameState } from "@/types/game";
 
-export default async function findByCode(code: string): Promise<Room | null> {
+export default async function get(code: string): Promise<RoomComplete | null> {
   const room = await roomRepo.get(code);
 
   if (!room) return null;
@@ -18,5 +18,6 @@ export default async function findByCode(code: string): Promise<Room | null> {
     configs: room.configs as GameConfig,
     createdAt: room.created_at,
     expiresAt: room.expires_at,
+    session: room.game_state as GameState | undefined,
   };
 }

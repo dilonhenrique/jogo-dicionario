@@ -24,5 +24,9 @@ export function useGamePlayers(initialPlayers?: GamePlayer[]) {
     )
   }
 
-  return { players, increasePointToPlayer };
+  function resetPoints() {
+    setPlayers(players => (players.map(p => ({ ...p, points: 0 }))));
+  }
+
+  return { players, increasePointToPlayer, resetPoints };
 }
