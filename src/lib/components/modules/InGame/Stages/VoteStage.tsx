@@ -11,8 +11,10 @@ export default function VoteStage() {
   const { amIHost } = useRoomChannel();
   const { currentRound, actions, stage, votes } = useGame();
 
-  const [value, setValue] = useState(votes.get(currentUser.id));
-  const [hasVoted, setVoted] = useState(false);
+  const myVote = votes.get(currentUser.id);
+
+  const [value, setValue] = useState(myVote);
+  const [hasVoted, setVoted] = useState(!!myVote);
 
   const showBlame = stage === "blame";
 

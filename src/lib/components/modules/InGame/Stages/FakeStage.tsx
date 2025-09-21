@@ -1,12 +1,16 @@
 import { useGame } from "@/lib/contexts/GameContext";
+import { useSession } from "@/lib/contexts/SessionContext";
 import { Button, Form, Textarea } from "@heroui/react";
 import { memo, useState } from "react";
 
 function FakeStage() {
-  const { actions } = useGame();
+  const { user } = useSession();
+  const { currentRound, actions } = useGame();
 
-  const [value, setValue] = useState("");
-  const [isSent, setSent] = useState(false);
+  const myFake = currentRound?.fakes.find(f => f.author.id === user.id);
+
+  const [value, setValue] = useState(myFake?.definition ?? "");
+  const [isSent, setSent] = useState(!!myFake);
 
   function handleUndo() {
     actions.removeFakeWord();
