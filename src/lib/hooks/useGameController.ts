@@ -55,7 +55,12 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     event: 'checkout-round',
     apply: () => {
       putCurrentRoundInHistory();
-      startNewRound();
+
+      if (configs.enableMaxPoints && players.some(p => p.points >= configs.maxPoints)) {
+        setStage("finishing");
+      } else {
+        startNewRound();
+      }
     },
     mapInput: () => undefined,
   });
