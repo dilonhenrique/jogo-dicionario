@@ -7,7 +7,7 @@ import { v4 } from "uuid";
 import { User } from "@/types/user";
 import { dictionaryService } from "@/server/services/dictionary";
 import { useSession } from "../contexts/SessionContext";
-import { addToast } from "@heroui/react";
+import { addToastDebounced } from "../utils/addToastDebounced";
 
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { user } = useSession();
@@ -104,7 +104,7 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     apply: (userId) => {
       removePlayer(userId);
       if (userId === user.id) {
-        addToast({
+        addToastDebounced({
           title: "Você foi removido da partida",
           color: "danger",
         })
