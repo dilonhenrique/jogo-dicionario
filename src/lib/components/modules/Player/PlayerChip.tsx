@@ -1,19 +1,20 @@
 import { useSession } from "@/lib/contexts/SessionContext";
 import { Player } from "@/types/user";
-import { Chip, Tooltip } from "@heroui/react";
+import { Chip, ChipProps, Tooltip } from "@heroui/react";
 import { CrownIcon } from "lucide-react";
 
-type Props = {
+type Props = Omit<ChipProps, "endContent" | "variant" | "color"> & {
   player: Player;
 }
 
-export default function PlayerChip({ player }: Props) {
+export default function PlayerChip({ player, ...props }: Props) {
   const { user } = useSession();
 
   const isMe = player.id === user.id;
 
   return (
     <Chip
+      {...props}
       variant="dot"
       color={player.onlineAt === null ? "danger" : "success"}
       endContent={player.isHost && (

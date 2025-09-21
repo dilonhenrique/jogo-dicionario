@@ -13,14 +13,27 @@ function pointSorter(item: GamePlayer) {
 export default function Leaderboard({ players }: Props) {
   const list = sortBy(players, [pointSorter, "name"]);
 
-  return (
-    <ul className="flex flex-col gap-2">
-      {list.map((player) => (
-        <li key={player.id} className="flex gap-4 justify-between items-center">
-          <PlayerChip player={player} />
+  function getPositionColor(index: number) {
+    switch (index) {
+      case 0:
+        return "text-warning font-bold";
+      case 1:
+        return "text-cyan-600 font-bold";
+      case 2:
+        return "text-amber-700 font-bold";
+      default:
+        return "text-default-400";
+    }
+  }
 
-          <p className="text-primary">
-            {player.points as number} pts
+  return (
+    <ul className="flex flex-col gap-4 divide-y divide-foreground-100">
+      {list.map((player, index) => (
+        <li key={player.id} className="flex gap-4 justify-between items-center pb-4">
+          <PlayerChip player={player} size="lg" classNames={{ base: "border-none px-0" }} />
+
+          <p className={getPositionColor(index)}>
+            {player.points} pts
           </p>
         </li>
       ))}
