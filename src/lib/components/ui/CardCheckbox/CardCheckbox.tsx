@@ -1,9 +1,9 @@
 import { useGame } from "@/lib/contexts/GameContext";
 import { useSession } from "@/lib/contexts/SessionContext";
+import { normalizeDefinition } from "@/lib/utils/normalizeDefinition";
 import { FakeWord, WordDictionary } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { Checkbox, CheckboxProps, Chip, cn } from "@heroui/react";
-import { upperFirst } from "lodash";
 import { Check } from "lucide-react";
 
 type Props = CheckboxProps & {
@@ -79,7 +79,7 @@ export default function CardCheckbox({ word, isSelected, showBlame, number, hasV
         </Chip>
       )}
 
-      {number}. {upperFirst(word.definition)}
+      {number}. {normalizeDefinition(word.definition)}
 
       {showBlame && playersVotedForThis.length > 0 && (
         <ul className="ps-2 mt-2">
