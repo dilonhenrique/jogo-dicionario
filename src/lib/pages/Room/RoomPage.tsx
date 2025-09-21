@@ -20,7 +20,7 @@ export default function RoomPage({ room }: Props) {
   const amIInThisGame = !room.session || room.session.players.some(u => u.id === user?.id);
 
   return (
-    <PageContainer className="relative min-h-dvh pb-36">
+    <PageContainer className="relative min-h-dvh pb-40">
       <h1 className="!text-large text-primary my-2">Sala #{room.code}</h1>
 
       <Divider className="mb-2" />

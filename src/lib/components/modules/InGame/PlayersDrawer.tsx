@@ -1,8 +1,8 @@
 import { Button, Drawer, DrawerBody, DrawerContent, DrawerHeader, Tooltip } from "@heroui/react";
 import { useState } from "react";
-import { PlayerList } from "../Player/PlayerList";
 import { useGame } from "@/lib/contexts/GameContext";
 import { Users2 } from "lucide-react";
+import Leaderboard from "../Player/Leaderboard";
 
 export default function PlayersDrawerButton() {
   const { players } = useGame();
@@ -29,7 +29,7 @@ export default function PlayersDrawerButton() {
           </DrawerHeader>
 
           <DrawerBody>
-            <PlayerList players={players} sortMode="points" />
+            <Leaderboard players={players} />
           </DrawerBody>
         </DrawerContent>
       </Drawer>
