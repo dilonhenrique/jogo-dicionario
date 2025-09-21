@@ -60,7 +60,7 @@ export default function RoomPreview({ onStartGame }: Props) {
                   size="lg"
                   onPress={onStartGame}
                   className="grow"
-                  isDisabled={onlinePlayers.length < 3}
+                  isDisabled={onlinePlayers.length < 2}
                   startContent={<SwordsIcon size={20} />}
                 >
                   Iniciar Jogo
