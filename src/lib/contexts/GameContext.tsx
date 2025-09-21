@@ -24,6 +24,7 @@ type GameContextValue = {
     vote: (definitionId: string) => void;
     removeVote: () => void;
     checkoutCurrentRound: () => void;
+    restartGame: () => void;
   }
 }
 
@@ -52,6 +53,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     removeVoteForUser,
     calculateRoundPoints,
     checkoutCurrentRound,
+    restartGame,
   } = useGameController(configs, initialState);
 
   const playingPlayers = players.filter(p => p.onlineAt !== null);
@@ -140,6 +142,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     vote,
     removeVote,
     checkoutCurrentRound,
+    restartGame,
   }
 
   return (<GameContext.Provider

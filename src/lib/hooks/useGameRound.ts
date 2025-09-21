@@ -118,6 +118,10 @@ export function useGameRound(initialState: Props) {
     voteActions.remove(userId);
   }
 
+  function resetHistory(){
+    setRoundHistory([]);
+  }
+
   return {
     currentRound,
     roundHistory,
@@ -128,5 +132,6 @@ export function useGameRound(initialState: Props) {
     removeFakeWordFromUser,
     pushVote,
     removeVote,
+    resetHistory,
   };
 }

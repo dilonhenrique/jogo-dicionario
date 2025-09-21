@@ -1,30 +1,15 @@
 import { GamePlayer } from "@/types/user";
 import PlayerChip from "./PlayerChip";
-import { sortBy } from "lodash";
+import { sortByPoints } from "@/lib/utils/sortByPoints";
+import { getPositionColor } from "@/lib/utils/getPositionColor";
 
 type Props = {
   players: GamePlayer[];
+  disableLeaderColor?: boolean;
 }
 
-function pointSorter(item: GamePlayer) {
-  return item.points * -1;
-}
-
-export default function Leaderboard({ players }: Props) {
-  const list = sortBy(players, [pointSorter, "name"]);
-
-  function getPositionColor(index: number) {
-    switch (index) {
-      case 0:
-        return "text-warning font-bold";
-      case 1:
-        return "text-cyan-600 font-bold";
-      case 2:
-        return "text-amber-700 font-bold";
-      default:
-        return "text-default-400";
-    }
-  }
+export default function Leaderboard({ players, disableLeaderColor }: Props) {
+  const list = sortByPoints(players);
 
   return (
     <ul className="flex flex-col gap-4 divide-y divide-foreground-100">
@@ -32,7 +17,7 @@ export default function Leaderboard({ players }: Props) {
         <li key={player.id} className="flex gap-4 justify-between items-center pb-4">
           <PlayerChip player={player} size="lg" classNames={{ base: "border-none px-0" }} />
 
-          <p className={getPositionColor(index)}>
+          <p className={disableLeaderColor ? "text-default-400" : getPositionColor(index + 1)}>
             {player.points} pts
           </p>
         </li>

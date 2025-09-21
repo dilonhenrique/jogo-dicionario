@@ -44,6 +44,8 @@ export default function StatusBar() {
 
   const isIndeterminate = percentage === undefined;
 
+  if (stage === "finishing") return null;
+
   return (
     <div className="fixed bottom-0 w-full max-w-2xl p-10 -ms-10">
       <div className="border border-foreground-200 bg-foreground-50 p-6 rounded-xl text-center relative overflow-hidden">

@@ -9,7 +9,7 @@ import { dictionaryService } from "@/server/services/dictionary";
 
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { stage, setStage } = useGameStage(initialState?.stage);
-  const { players, increasePointToPlayer } = useGamePlayers(initialState?.players);
+  const { players, increasePointToPlayer, resetPoints } = useGamePlayers(initialState?.players);
   const {
     currentRound,
     roundHistory,
@@ -20,6 +20,7 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     putCurrentRoundInHistory,
     pushVote,
     removeVote,
+    resetHistory,
   } = useGameRound({
     currentRound: initialState?.currentRound,
     roundHistory: initialState?.roundHistory,
@@ -50,13 +51,14 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     }
   }
 
-  const checkoutCurrentRound = useDispatcher({
+  const checkoutCurrentRound = useDispatcher<void>({
     event: 'checkout-round',
     apply: () => {
       putCurrentRoundInHistory();
       startNewRound();
     },
-  }) as () => void;
+    mapInput: () => undefined,
+  });
 
   const addFakeWordForUser = useDispatcher<{ definition: string, author: User }, FakeWord>({
     event: 'new-fake',
@@ -77,6 +79,16 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
   const removeVoteForUser = useDispatcher<string>({
     event: 'remove-vote',
     apply: removeVote,
+  })
+
+  const restartGame = useDispatcher<void>({
+    event: 'restart-game',
+    apply: () => {
+      resetPoints();
+      resetHistory();
+      startNewRound();
+    },
+    mapInput: () => undefined,
   })
 
   function calculateRoundPoints() {
@@ -112,5 +124,6 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     calculateRoundPoints,
     addVoteForUser,
     removeVoteForUser,
+    restartGame,
   };
 }
