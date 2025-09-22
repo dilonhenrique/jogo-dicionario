@@ -30,7 +30,7 @@ export function PlayerList({ players, onRemove }: Props) {
               color="danger"
               variant="light"
               radius="full"
-              className="opacity-0 group-hover:opacity-100"
+              className="sm:opacity-0 group-hover:opacity-100"
               startContent={<Trash size={14} />}
               onPress={() => onRemove(player)}
             />
