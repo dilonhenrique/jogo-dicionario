@@ -7,6 +7,7 @@ import { useSession } from "@/lib/contexts/SessionContext";
 import { RoomComplete } from "@/types/room";
 import { addToast, Button, Divider, Form, Input, Spinner } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 import { useIsClient } from "usehooks-ts";
 
 type Props = {
@@ -29,7 +30,12 @@ export default function RoomPage({ room }: Props) {
         ? <Spinner />
         : !amIInThisGame
           // TODO: improve this ifs
-          ? <p>O jogo já começou sem você</p>
+          ? (
+            <>
+              <p>O jogo já começou sem você</p>
+              <Button as={Link} href="/">Página inicial</Button>
+            </>
+          )
           : user === null
             ? (
               <Form

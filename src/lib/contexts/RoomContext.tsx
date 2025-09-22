@@ -1,12 +1,14 @@
 "use client";
 
-import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState, RefObject } from "react";
 import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
 import { Room } from "@/types/room";
-import { GameConfig } from "@/types/game";
+import { ConnectionStatus, GameConfig, GameState } from "@/types/game";
+import useSyncGame from "../hooks/useSyncGame";
+import { serverLog } from "../utils/serverLog";
 
 type RoomChannelContextValue = {
   code: string;
@@ -17,6 +19,8 @@ type RoomChannelContextValue = {
   amIHost: boolean;
   amIConnected: boolean;
   configs: GameConfig;
+  connectionStatus: ConnectionStatus;
+  updateGameState: RefObject<(state: GameState) => void>
   startGame: () => void;
 };
 
@@ -32,13 +36,14 @@ type Props = PropsWithChildren & {
 
 function RoomChannelProvider({ children, room }: Props) {
   const { user } = useSession();
+  const { connectionStatus, setConnectionStatus, updateGameState } = useSyncGame(room.code);
 
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [hostId, setHostId] = useState(room.host.id);
   const [users, setUsers] = useState<RoomUser[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
-  const configs = room.configs as GameConfig;
 
+  const configs = room.configs as GameConfig;
   const amIConnected = users.some(u => u.id === user.id);
 
   useEffect(() => {
@@ -55,19 +60,24 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: 'UPDATE', table: 'rooms', filter: `code=eq.${room.code}` },
         (payload) => { setHostId(payload.new.host_user_id) }
       )
-      // .on(
-      //   "postgres_changes",
-      //   { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
-      //   (payload) => { console.log(payload) }
-      // )
       .subscribe(async (status, err) => {
-        if (err) console.error(err);
+        if (err) {
+          console.error('Erro no channel:', err);
+          setConnectionStatus('disconnected');
+          return;
+        }
+
+        serverLog('📡 Status do channel:', status);
 
         if (status === "SUBSCRIBED") {
+          setConnectionStatus('connected');
+
           await roomChannel.track({
             ...user,
             onlineAt: new Date().toISOString(),
           });
+        } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
+          setConnectionStatus('disconnected');
         }
       });
 
@@ -94,9 +104,12 @@ function RoomChannelProvider({ children, room }: Props) {
       amIHost: user.id === hostId,
       amIConnected,
       configs,
+      connectionStatus,
+      updateGameState,
       startGame,
     }),
-    [room.code, hostId, users, gameHasStarted, channel, amIConnected, configs, user.id]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

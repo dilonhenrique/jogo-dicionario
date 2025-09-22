@@ -45,7 +45,6 @@ export default function Room() {
       try {
         const session = await gameSessionService.get(code);
         if (session) {
-          console.log(session);
           setInitialState(session.game_state as GameState);
           startGame();
         }

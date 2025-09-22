@@ -9,6 +9,7 @@ import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
 import { gameSessionService } from "@/server/services/gameSession";
 import { useSession } from "./SessionContext";
+import { serverLog } from "../utils/serverLog";
 
 type GameContextValue = {
   stage: GameStage;
@@ -38,7 +39,7 @@ type Props = PropsWithChildren & {
 
 function GameProvider({ children, configs, initialState }: Props) {
   const { user: currentUser } = useSession();
-  const { channel, code, amIHost } = useRoomChannel();
+  const { channel, code, amIHost, updateGameState } = useRoomChannel();
 
   const {
     stage,
@@ -65,15 +66,19 @@ function GameProvider({ children, configs, initialState }: Props) {
     currentRound,
     roundHistory,
     votes: Array.from(votes.entries()),
-  })
+  });
 
   useFirstRender(() => {
     channel.send({
       type: "broadcast",
       event: "start-game",
       payload: { configs, initialState },
-    })
-  })
+    });
+
+    updateGameState.current = (state) => {
+      serverLog(JSON.stringify(state));
+    }
+  });
 
   useEffect(() => {
     if (amIHostLatest.current) {

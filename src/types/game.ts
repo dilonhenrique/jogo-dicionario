@@ -36,3 +36,5 @@ export type GameState = {
 }
 
 export type GameVotes = Omit<Map<string, string>, "set" | "clear" | "delete">;
+
+export type ConnectionStatus = 'connected' | 'disconnected' | 'syncing';
