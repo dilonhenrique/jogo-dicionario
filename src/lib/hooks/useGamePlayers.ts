@@ -32,5 +32,9 @@ export function useGamePlayers(initialPlayers?: GamePlayer[]) {
     setPlayers(players => players.filter(p => p.id !== userId));
   }
 
-  return { players, increasePointToPlayer, resetPoints, removePlayer };
+  function updatePlayers(newPlayers: GamePlayer[]) {
+    setPlayers(newPlayers);
+  }
+
+  return { players, increasePointToPlayer, resetPoints, removePlayer, updatePlayers };
 }

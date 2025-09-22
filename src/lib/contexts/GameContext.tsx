@@ -9,7 +9,6 @@ import { useLatest } from "../hooks/useLatest";
 import useFirstRender from "../hooks/useFirstRender";
 import { gameSessionService } from "@/server/services/gameSession";
 import { useSession } from "./SessionContext";
-import { serverLog } from "../utils/serverLog";
 
 type GameContextValue = {
   stage: GameStage;
@@ -57,6 +56,7 @@ function GameProvider({ children, configs, initialState }: Props) {
     checkoutCurrentRound,
     restartGame,
     kickPlayer,
+    updateGameState: updateGameStateController,
   } = useGameController(configs, initialState);
 
   const amIHostLatest = useLatest(amIHost);
@@ -75,9 +75,7 @@ function GameProvider({ children, configs, initialState }: Props) {
       payload: { configs, initialState },
     });
 
-    updateGameState.current = (state) => {
-      serverLog(JSON.stringify(state));
-    }
+    updateGameState.current = updateGameStateController;
   });
 
   useEffect(() => {

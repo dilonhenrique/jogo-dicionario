@@ -12,7 +12,7 @@ import { addToastDebounced } from "../utils/addToastDebounced";
 export default function useGameController(configs: GameConfig, initialState?: Partial<GameState>) {
   const { user } = useSession();
   const { stage, setStage } = useGameStage(initialState?.stage);
-  const { players, increasePointToPlayer, resetPoints, removePlayer } = useGamePlayers(initialState?.players);
+  const { players, increasePointToPlayer, resetPoints, removePlayer, updatePlayers } = useGamePlayers(initialState?.players);
   const {
     currentRound,
     roundHistory,
@@ -24,6 +24,9 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     pushVote,
     removeVote,
     resetHistory,
+    updateCurrentRound,
+    updateRoundHistory,
+    updateVotes,
   } = useGameRound({
     currentRound: initialState?.currentRound,
     roundHistory: initialState?.roundHistory,
@@ -131,6 +134,14 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     }
   }
 
+  function updateGameState(newState: GameState) {
+    setStage(newState.stage);
+    updatePlayers(newState.players);
+    updateCurrentRound(newState.currentRound);
+    updateRoundHistory(newState.roundHistory);
+    updateVotes(newState.votes);
+  }
+
   return {
     stage,
     changeStage,
@@ -147,5 +158,6 @@ export default function useGameController(configs: GameConfig, initialState?: Pa
     removeVoteForUser,
     restartGame,
     kickPlayer,
+    updateGameState,
   };
 }

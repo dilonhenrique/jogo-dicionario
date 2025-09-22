@@ -1,5 +1,6 @@
 "use server";
 
-export async function serverLog(...args: string[]) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function serverLog(...args: any[]) {
   console.log(...args);
 }

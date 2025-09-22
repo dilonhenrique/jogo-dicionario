@@ -122,6 +122,21 @@ export function useGameRound(initialState: Props) {
     setRoundHistory([]);
   }
 
+  function updateCurrentRound(newCurrentRound: WordRound | null) {
+    setCurrentRound(newCurrentRound);
+  }
+
+  function updateRoundHistory(newRoundHistory: WordRound[]) {
+    setRoundHistory(newRoundHistory);
+  }
+
+  function updateVotes(newVotes: [string, string][]) {
+    voteActions.reset();
+    newVotes.forEach(([userId, definitionId]) => {
+      voteActions.set(userId, definitionId);
+    });
+  }
+
   return {
     currentRound,
     roundHistory,
@@ -133,5 +148,8 @@ export function useGameRound(initialState: Props) {
     pushVote,
     removeVote,
     resetHistory,
+    updateCurrentRound,
+    updateRoundHistory,
+    updateVotes,
   };
 }

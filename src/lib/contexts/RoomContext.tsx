@@ -62,7 +62,7 @@ function RoomChannelProvider({ children, room }: Props) {
       )
       .subscribe(async (status, err) => {
         if (err) {
-          console.error('Erro no channel:', err);
+          serverLog('Erro no channel:', err);
           setConnectionStatus('disconnected');
           return;
         }
