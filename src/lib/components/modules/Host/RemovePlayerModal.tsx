@@ -20,10 +20,10 @@ export default function RemovePlayerModal({ player, ...props }: Props) {
   return (
     <Modal isOpen={!!player} {...props}>
       <ModalContent>
-        <ModalHeader>Remover jogador?</ModalHeader>
+        <ModalHeader>Expulsar jogador?</ModalHeader>
 
         <ModalBody>
-          <p>Tem certeza que deseja excluir o jogador {player?.name}</p>
+          <p>Tem certeza que deseja excluir o jogador {player?.name} da partida?</p>
         </ModalBody>
 
         <ModalFooter>
@@ -38,7 +38,7 @@ export default function RemovePlayerModal({ player, ...props }: Props) {
             color="danger"
             onPress={() => handleRemovePlayer(player?.id)}
           >
-            Remover
+            Expulsar
           </Button>
         </ModalFooter>
       </ModalContent>

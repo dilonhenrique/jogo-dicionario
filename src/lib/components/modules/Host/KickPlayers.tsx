@@ -18,7 +18,7 @@ export default function KickPlayers() {
 
   return (
     <>
-      <h5>Remover jogador</h5>
+      <h5>Expulsar jogador</h5>
       <PlayerList
         players={playersToRemove}
         onRemove={amIHost ? (player) => setRemovePlayer(player) : undefined}
