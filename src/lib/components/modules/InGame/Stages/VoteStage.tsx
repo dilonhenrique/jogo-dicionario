@@ -1,7 +1,7 @@
 import { sortBy } from "lodash";
 import { useGame } from "@/lib/contexts/GameContext"
-import { Button, Form } from "@heroui/react";
-import { useMemo, useState } from "react";
+import { Button } from "@heroui/react";
+import { useMemo } from "react";
 import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";
 import { useSession } from "@/lib/contexts/SessionContext";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
@@ -12,9 +12,6 @@ export default function VoteStage() {
   const { currentRound, actions, stage, votes } = useGame();
 
   const myVote = votes.get(currentUser.id);
-
-  const [value, setValue] = useState(myVote);
-  const [hasVoted, setVoted] = useState(!!myVote);
 
   const showBlame = stage === "blame";
 
@@ -28,50 +25,36 @@ export default function VoteStage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function handleVote(defId: string, isSelected: boolean) {
+    if (isSelected) {
+      actions.vote(defId);
+    } else {
+      actions.removeVote();
+    }
+  }
+
   if (!currentRound) return <></>;
 
   return (
-    <Form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (typeof value === "string") {
-          actions.vote(value);
-          setVoted(true);
-        }
-      }}
-    >
+    <>
       <div className="w-full flex flex-col gap-6 my-4">
         {allDefinitions.map((word, index) => (
           <CardCheckbox
             key={word.id}
             word={word}
-            isSelected={value === word.id}
-            onValueChange={(isSelected) => setValue(curr => isSelected ? word.id : curr)}
+            isSelected={myVote === word.id}
+            onValueChange={(isSelected) => handleVote(word.id, isSelected)}
             showBlame={showBlame}
             number={index + 1}
-            hasVoted={hasVoted}
           />
         ))}
       </div>
 
-      {!showBlame && (
-        <>
-          <Button type="submit" color="primary" isDisabled={!value || hasVoted}>
-            Confirmar voto
-          </Button>
-          {hasVoted && <Button onPress={() => {
-            actions.removeVote();
-            setVoted(false);
-          }}>
-            Cancelar voto
-          </Button>}
-        </>
-      )}
       {showBlame && amIHost && (
-        <Button color="primary" onPress={() => actions.checkoutCurrentRound()}>
+        <Button color="primary" className="mt-auto self-center" onPress={() => actions.checkoutCurrentRound()}>
           Iniciar próxima rodada
         </Button>
       )}
-    </Form>
+    </>
   )
 }
