@@ -29,19 +29,28 @@ export async function checkoutRound({
     gameFakeDefinitionRepo.getByRound(currentRound.id),
   ]);
 
-  // Contabilizar pontos
+  // Contabilizar pontos (batch update)
+  const pointsUpdates: Promise<unknown>[] = [];
+  
   for (const vote of votes) {
     if (vote.is_real_word) {
       // Acertou a palavra real: +1 ponto
-      await gamePlayerRepo.incrementPoints(roomCode, vote.user_id, 1);
+      pointsUpdates.push(
+        gamePlayerRepo.incrementPoints(roomCode, vote.user_id, 1)
+      );
     } else if (vote.definition_id) {
       // Votou em uma falsa: autor da falsa ganha +1 ponto
       const fake = fakes.find(f => f.id === vote.definition_id);
       if (fake) {
-        await gamePlayerRepo.incrementPoints(roomCode, fake.author_user_id, 1);
+        pointsUpdates.push(
+          gamePlayerRepo.incrementPoints(roomCode, fake.author_user_id, 1)
+        );
       }
     }
   }
+
+  // Executar todos os updates em paralelo
+  await Promise.all(pointsUpdates);
 
   // 3. Finalizar rodada atual
   await gameRoundRepo.finish(currentRound.id);

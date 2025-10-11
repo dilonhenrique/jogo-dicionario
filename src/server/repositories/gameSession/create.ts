@@ -13,7 +13,9 @@ export default async function create({ roomCode, initialState }: Props) {
     .insertInto("game_sessions")
     .values({
       room_code: roomCode,
-      game_state: initialState,
+      stage: initialState.stage || 'word_pick',
+      current_round_id: null, // Rodada será criada depois
+      game_state: initialState, // Mantém temporariamente para compatibilidade
     })
     .execute();
 }

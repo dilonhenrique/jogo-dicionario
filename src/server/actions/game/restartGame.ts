@@ -14,15 +14,16 @@ export async function restartGame({
   roomCode: string;
   configs: GameConfig;
 }) {
-  // 1. Resetar pontos dos jogadores
-  await gamePlayerRepo.reset(roomCode);
+  // 1. Resetar pontos e buscar rodadas abertas em paralelo
+  const [, openRounds] = await Promise.all([
+    gamePlayerRepo.reset(roomCode),
+    gameRoundRepo.getOpenRounds(roomCode),
+  ]);
 
-  // 2. Finalizar todas as rodadas abertas
-  const openRounds = await gameRoundRepo.getOpenRounds(roomCode);
-  
-  for (const round of openRounds) {
-    await gameRoundRepo.finish(round.id);
-  }
+  // 2. Finalizar todas as rodadas abertas em paralelo
+  await Promise.all(
+    openRounds.map(round => gameRoundRepo.finish(round.id))
+  );
 
   // 3. Iniciar nova rodada
   if (configs.enableHostChooseWord) {

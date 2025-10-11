@@ -1,13 +1,12 @@
 "use client";
 
-import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState, RefObject } from "react";
+import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
 import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
 import { Room } from "@/types/room";
-import { ConnectionStatus, GameConfig, GameState } from "@/types/game";
-import useSyncGame from "../hooks/useSyncGame";
+import { ConnectionStatus, GameConfig } from "@/types/game";
 import { serverLog } from "../utils/serverLog";
 
 type RoomChannelContextValue = {
@@ -20,7 +19,7 @@ type RoomChannelContextValue = {
   amIConnected: boolean;
   configs: GameConfig;
   connectionStatus: ConnectionStatus;
-  updateGameState: RefObject<(state: GameState) => void>
+  onGameStateChange: () => void;
   startGame: () => void;
 };
 
@@ -36,15 +35,20 @@ type Props = PropsWithChildren & {
 
 function RoomChannelProvider({ children, room }: Props) {
   const { user } = useSession();
-  const { connectionStatus, setConnectionStatus, updateGameState } = useSyncGame(room.code);
 
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [hostId, setHostId] = useState(room.host.id);
   const [users, setUsers] = useState<RoomUser[]>([]);
   const [gameHasStarted, setGameStarted] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
+  const [gameStateChangeCounter, setGameStateChangeCounter] = useState(0);
 
   const configs = room.configs as GameConfig;
   const amIConnected = users.some(u => u.id === user.id);
+
+  const onGameStateChange = () => {
+    setGameStateChangeCounter(prev => prev + 1);
+  };
 
   useEffect(() => {
     const roomChannel = roomService.joinRoomChannel({ code: room.code, user });
@@ -59,6 +63,50 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: 'UPDATE', table: 'rooms', filter: `code=eq.${room.code}` },
         (payload) => { setHostId(payload.new.host_user_id) }
+      )
+      // Listeners para mudanças no estado do jogo
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: 'UPDATE', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+        () => {
+          serverLog('🔄 game_sessions atualizada');
+          onGameStateChange();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: '*', table: 'game_players', filter: `room_code=eq.${room.code}` },
+        () => {
+          serverLog('🔄 game_players atualizada');
+          onGameStateChange();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: '*', table: 'game_rounds' },
+        (payload) => {
+          // Verificar se é uma rodada desta sala
+          if (payload.new && 'room_code' in payload.new && payload.new.room_code === room.code) {
+            serverLog('🔄 game_rounds atualizada');
+            onGameStateChange();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: '*', table: 'game_fake_definitions' },
+        () => {
+          serverLog('🔄 game_fake_definitions atualizada');
+          onGameStateChange();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { schema: 'public', event: '*', table: 'game_votes' },
+        () => {
+          serverLog('🔄 game_votes atualizada');
+          onGameStateChange();
+        }
       )
       .subscribe(async (status, err) => {
         if (err) {
@@ -105,11 +153,11 @@ function RoomChannelProvider({ children, room }: Props) {
       amIConnected,
       configs,
       connectionStatus,
-      updateGameState,
+      onGameStateChange,
       startGame,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus]
+    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

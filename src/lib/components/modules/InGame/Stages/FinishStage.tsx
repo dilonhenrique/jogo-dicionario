@@ -36,7 +36,13 @@ export default function FinishStage() {
         <Button
           color="primary"
           className="mt-auto self-center"
-          onPress={actions.restartGame}
+          onPress={async () => {
+            try {
+              await actions.restartGame();
+            } catch (error) {
+              console.error("Erro ao reiniciar jogo:", error);
+            }
+          }}
           startContent={<SwordsIcon size={16} />}
         >
           Jogar de novo

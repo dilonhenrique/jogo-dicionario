@@ -1,42 +1,52 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import InGame from "../InGame/InGame";
 import { GameProvider } from "@/lib/contexts/GameContext";
-import { GameState, WordDictionary } from "@/types/game";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { dictionaryService } from "@/server/services/dictionary";
 import RoomPreview from "./RoomPreview";
 import { gameSessionService } from "@/server/services/gameSession";
+import { gameActions } from "@/server/actions/game";
 import { addToast } from "@heroui/react";
 import { useIsClient } from "usehooks-ts";
 import { Crown } from "lucide-react";
 
 export default function Room() {
-  const { channel, gameHasStarted, startGame, code, configs, onlinePlayers, amIHost } = useRoomChannel();
-  const [initialState, setInitialState] = useState<Partial<GameState>>();
+  const { gameHasStarted, startGame, code, configs, onlinePlayers, amIHost } = useRoomChannel();
   const isClient = useIsClient();
 
   async function hostStartNewGame() {
     const hostChooseWord = configs.enableHostChooseWord === true;
-    let word: WordDictionary | null = null;
 
-    if (!hostChooseWord) {
-      [word] = await dictionaryService.getNewRandomWord();
-    }
-
-    const initialGameState: GameState = {
-      players: onlinePlayers.map(p => ({ ...p, points: 0 })),
-      stage: hostChooseWord ? "word_pick" : "fake",
-      currentRound: word ? { word, fakes: [] } : null,
-      roundHistory: [],
-      votes: [],
-    };
-
+    // 1. Criar sessão do jogo
     await gameSessionService.create({
       roomCode: code,
-      initialState: initialGameState
+      initialState: {
+        players: [],
+        stage: hostChooseWord ? "word_pick" : "fake",
+        currentRound: null,
+        roundHistory: [],
+        votes: [],
+      }
     });
 
-    setInitialState(initialGameState);
+    // 2. Adicionar todos os jogadores online
+    for (const player of onlinePlayers) {
+      await gameActions.joinGame({
+        roomCode: code,
+        userId: player.id,
+        userName: player.name,
+      });
+    }
+
+    // 3. Se não for host escolhendo palavra, já sorteia e começa
+    if (!hostChooseWord) {
+      const [word] = await dictionaryService.getNewRandomWord();
+      await gameActions.setWordAndStartFake({
+        roomCode: code,
+        word,
+      });
+    }
+
     startGame();
   }
 
@@ -45,7 +55,6 @@ export default function Room() {
       try {
         const session = await gameSessionService.get(code);
         if (session) {
-          setInitialState(session.game_state as GameState);
           startGame();
         }
       } catch (error) {
@@ -54,13 +63,8 @@ export default function Room() {
     };
 
     loadGameSession();
-
-    channel
-      ?.on("broadcast", { event: "start-game" }, ({ payload }) => {
-        setInitialState((curr) => ({ ...curr, ...payload.initialState }));
-        startGame();
-      });
-  }, [channel, code, startGame]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
 
   useEffect(() => {
     if (isClient && amIHost) {
@@ -74,9 +78,9 @@ export default function Room() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amIHost])
 
-  if (gameHasStarted && initialState) {
+  if (gameHasStarted) {
     return (
-      <GameProvider configs={configs} initialState={initialState}>
+      <GameProvider configs={configs}>
         <InGame />
       </GameProvider>
     );

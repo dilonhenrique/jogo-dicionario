@@ -2,13 +2,11 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
 import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, GameState, GameVotes, SimpleWord, WordRound } from "@/types/game";
+import { GameConfig, GameStage, GameVotes, SimpleWord, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
-import useGameController from "../hooks/useGameController";
-import { useLatest } from "../hooks/useLatest";
-import useFirstRender from "../hooks/useFirstRender";
-import { gameSessionService } from "@/server/services/gameSession";
 import { useSession } from "./SessionContext";
+import { useGameSync } from "../hooks/useGameSync";
+import { gameActions } from "@/server/actions/game";
 
 type GameContextValue = {
   stage: GameStage;
@@ -17,15 +15,16 @@ type GameContextValue = {
   configs: GameConfig;
   currentRound: WordRound | null;
   roundHistory: WordRound[];
+  isLoading: boolean;
   actions: {
-    setWordAndStartFakeStage: (word: SimpleWord) => void;
-    addFakeWord: (definition: string) => void;
-    removeFakeWord: () => void;
-    vote: (definitionId: string) => void;
-    removeVote: () => void;
-    checkoutCurrentRound: () => void;
-    restartGame: () => void;
-    kickPlayer: (userId: string) => void;
+    setWordAndStartFakeStage: (word: SimpleWord) => Promise<void>;
+    addFakeWord: (definition: string) => Promise<void>;
+    removeFakeWord: () => Promise<void>;
+    vote: (definitionId: string) => Promise<void>;
+    removeVote: () => Promise<void>;
+    checkoutCurrentRound: () => Promise<void>;
+    restartGame: () => Promise<void>;
+    kickPlayer: (userId: string) => Promise<void>;
   }
 }
 
@@ -33,110 +32,90 @@ const GameContext = createContext<GameContextValue>({} as GameContextValue);
 
 type Props = PropsWithChildren & {
   configs: GameConfig;
-  initialState?: Partial<GameState>;
 }
 
-function GameProvider({ children, configs, initialState }: Props) {
-  const { user: currentUser } = useSession();
-  const { channel, code, amIHost, updateGameState } = useRoomChannel();
-
+function GameProvider({ children, configs }: Props) {
+  const { user } = useSession();
+  const { code, onGameStateChange } = useRoomChannel();
   const {
     stage,
-    changeStage,
     players,
     currentRound,
     roundHistory,
-    votes,
-    setWordAndStartFakeStage,
-    addFakeWordForUser,
-    removeFakeWordForUser,
-    addVoteForUser,
-    removeVoteForUser,
-    calculateRoundPoints,
-    checkoutCurrentRound,
-    restartGame,
-    kickPlayer,
-    updateGameState: updateGameStateController,
-  } = useGameController(configs, initialState);
+    votes: votesMap,
+    isLoading,
+    refetchAll,
+  } = useGameSync(code);
 
-  const amIHostLatest = useLatest(amIHost);
-  const gameState = useLatest<GameState>({
-    players,
-    stage,
-    currentRound,
-    roundHistory,
-    votes: Array.from(votes.entries()),
-  });
+  // Converter Map para objeto somente leitura
+  const votes: GameVotes = votesMap as GameVotes;
 
-  useFirstRender(() => {
-    channel.send({
-      type: "broadcast",
-      event: "start-game",
-      payload: { configs, initialState },
+  // Re-fetch quando houver mudanças no banco
+  useEffect(() => {
+    refetchAll();
+  }, [onGameStateChange, refetchAll]);
+
+  const setWordAndStartFakeStage = useCallback(async (word: SimpleWord) => {
+    await gameActions.setWordAndStartFake({
+      roomCode: code,
+      word,
     });
+  }, [code]);
 
-    updateGameState.current = updateGameStateController;
-  });
+  const addFakeWord = useCallback(async (definition: string) => {
+    await gameActions.addFakeDefinition({
+      roomCode: code,
+      userId: user.id,
+      definition,
+    });
+  }, [code, user.id]);
 
-  useEffect(() => {
-    if (amIHostLatest.current) {
-      const saveState = async () => {
-        try {
-          await gameSessionService.updateState(code, gameState.current);
-        } catch (error) {
-          console.error("Erro ao salvar estado do jogo:", error);
-        }
-      };
+  const removeFakeWord = useCallback(async () => {
+    await gameActions.removeFakeDefinition({
+      roomCode: code,
+      userId: user.id,
+    });
+  }, [code, user.id]);
 
-      const timeoutId = setTimeout(saveState, 500);
-      return () => clearTimeout(timeoutId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage, currentRound, votes, code, gameState]);
+  const vote = useCallback(async (definitionId: string) => {
+    // Verificar se está votando na palavra real
+    const isRealWord = currentRound?.word.id === definitionId;
+    
+    await gameActions.addVote({
+      roomCode: code,
+      userId: user.id,
+      definitionId: isRealWord ? null : definitionId,
+      isRealWord,
+    });
+  }, [code, user.id, currentRound]);
 
-  function addFakeWord(definition: string) {
-    addFakeWordForUser({ definition, author: currentUser, });
-  }
+  const removeVote = useCallback(async () => {
+    await gameActions.removeVote({
+      roomCode: code,
+      userId: user.id,
+    });
+  }, [code, user.id]);
 
-  function removeFakeWord() {
-    removeFakeWordForUser(currentUser.id);
-  }
+  const checkoutCurrentRound = useCallback(async () => {
+    await gameActions.checkoutRound({
+      roomCode: code,
+      configs,
+    });
+  }, [code, configs]);
 
-  const checkIfEverybodyAddedFake = useCallback(() => {
-    if (!currentRound) return;
+  const restartGameAction = useCallback(async () => {
+    await gameActions.restartGame({
+      roomCode: code,
+      configs,
+    });
+  }, [code, configs]);
 
-    const totalAnswered = players.map(p => currentRound?.fakes
-      .some(f => f.author.id === p.id) ?? false)
-      .filter(Boolean).length;
-
-    if (totalAnswered >= players.length) {
-      changeStage("vote");
-    }
-  }, [currentRound, players, changeStage])
-
-  const checkIfEverybodyVoted = useCallback(() => {
-    if (!currentRound) return;
-
-    const totalVotes = players.map(p => votes.has(p.id)).filter(Boolean).length;
-
-    if (totalVotes >= players.length) {
-      calculateRoundPoints();
-      changeStage("blame");
-    }
-  }, [currentRound, players, votes, changeStage, calculateRoundPoints])
-
-  useEffect(() => {
-    if (stage === "fake") checkIfEverybodyAddedFake();
-    if (stage === "vote") checkIfEverybodyVoted();
-  }, [checkIfEverybodyAddedFake, checkIfEverybodyVoted, stage])
-
-  function vote(definitionId: string) {
-    addVoteForUser({ definitionId, user: currentUser });
-  }
-
-  function removeVote() {
-    removeVoteForUser(currentUser.id);
-  }
+  const kickPlayerAction = useCallback(async (userId: string) => {
+    await gameActions.kickPlayer({
+      roomCode: code,
+      userId,
+    });
+  }, [code]);
 
   const actions = {
     setWordAndStartFakeStage,
@@ -145,8 +124,8 @@ function GameProvider({ children, configs, initialState }: Props) {
     vote,
     removeVote,
     checkoutCurrentRound,
-    restartGame,
-    kickPlayer,
+    restartGame: restartGameAction,
+    kickPlayer: kickPlayerAction,
   }
 
   return (<GameContext.Provider
@@ -157,6 +136,7 @@ function GameProvider({ children, configs, initialState }: Props) {
       currentRound,
       roundHistory,
       configs,
+      isLoading,
       actions,
     }}
   >

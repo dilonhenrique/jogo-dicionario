@@ -10,11 +10,15 @@ type Props = {
 export default function RemovePlayerModal({ player, ...props }: Props) {
   const { actions } = useGame();
 
-  function handleRemovePlayer(userId?: string) {
+  async function handleRemovePlayer(userId?: string) {
     if (!userId) return;
 
-    actions.kickPlayer(userId);
-    props.onClose();
+    try {
+      await actions.kickPlayer(userId);
+      props.onClose();
+    } catch (error) {
+      console.error("Erro ao expulsar jogador:", error);
+    }
   }
 
   return (

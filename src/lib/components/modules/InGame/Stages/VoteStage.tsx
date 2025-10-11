@@ -25,11 +25,15 @@ export default function VoteStage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleVote(defId: string, isSelected: boolean) {
-    if (isSelected) {
-      actions.vote(defId);
-    } else {
-      actions.removeVote();
+  async function handleVote(defId: string, isSelected: boolean) {
+    try {
+      if (isSelected) {
+        await actions.vote(defId);
+      } else {
+        await actions.removeVote();
+      }
+    } catch (error) {
+      console.error("Erro ao votar:", error);
     }
   }
 
@@ -51,7 +55,17 @@ export default function VoteStage() {
       </div>
 
       {showBlame && amIHost && (
-        <Button color="primary" className="mt-auto self-center" onPress={() => actions.checkoutCurrentRound()}>
+        <Button
+          color="primary"
+          className="mt-auto self-center"
+          onPress={async () => {
+            try {
+              await actions.checkoutCurrentRound();
+            } catch (error) {
+              console.error("Erro ao finalizar rodada:", error);
+            }
+          }}
+        >
           Iniciar próxima rodada
         </Button>
       )}

@@ -36,7 +36,13 @@ export default function WordSelector() {
                 <Button
                   key={word.label}
                   size="lg"
-                  onPress={() => actions.setWordAndStartFakeStage(word)}
+                  onPress={async () => {
+                    try {
+                      await actions.setWordAndStartFakeStage(word);
+                    } catch (error) {
+                      console.error("Erro ao selecionar palavra:", error);
+                    }
+                  }}
                 >
                   {word.label}
                 </Button>

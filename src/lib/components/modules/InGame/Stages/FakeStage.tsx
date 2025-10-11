@@ -11,20 +11,35 @@ function FakeStage() {
 
   const [value, setValue] = useState(myFake?.definition ?? "");
   const [isSent, setSent] = useState(!!myFake);
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleUndo() {
-    actions.removeFakeWord();
-    setSent(false);
+  async function handleUndo() {
+    setIsLoading(true);
+    try {
+      await actions.removeFakeWord();
+      setSent(false);
+    } catch (error) {
+      console.error("Erro ao remover definição falsa:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
     <Form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
 
         if (value.length > 5) {
-          actions.addFakeWord(value);
-          setSent(true);
+          setIsLoading(true);
+          try {
+            await actions.addFakeWord(value);
+            setSent(true);
+          } catch (error) {
+            console.error("Erro ao enviar definição falsa:", error);
+          } finally {
+            setIsLoading(false);
+          }
         }
       }}
     >
@@ -32,14 +47,16 @@ function FakeStage() {
         size="lg"
         name="definition"
         placeholder="Escreva uma definição"
-        isDisabled={isSent}
+        isDisabled={isSent || isLoading}
         value={value}
         onValueChange={setValue}
       />
 
       <div className="flex gap-2">
-        <Button type="submit" isDisabled={isSent || value.length <= 5} color="primary">Enviar</Button>
-        {isSent && <Button onPress={handleUndo}>Alterar</Button>}
+        <Button type="submit" isDisabled={isSent || value.length <= 5 || isLoading} color="primary" isLoading={isLoading}>
+          Enviar
+        </Button>
+        {isSent && <Button onPress={handleUndo} isDisabled={isLoading}>Alterar</Button>}
       </div>
     </Form>
   )
