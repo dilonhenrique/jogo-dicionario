@@ -12,7 +12,7 @@ export default function KickPlayers() {
   const { players } = useGame();
 
   const [removePlayer, setRemovePlayer] = useState<Player | null>(null);
-  const playersToRemove = players.filter(p => p.id !== user.id);
+  const playersToRemove = players?.filter(p => p.id !== user.id) ?? [];
 
   if (playersToRemove.length === 0) return null;
 

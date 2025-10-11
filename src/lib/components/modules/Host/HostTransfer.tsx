@@ -34,7 +34,7 @@ export default function HostTransfer() {
     }
   };
 
-  const eligiblePlayers = players.filter(p => p.onlineAt !== null && p.id !== currentUser.id);
+  const eligiblePlayers = players?.filter(p => p.onlineAt !== null && p.id !== currentUser.id) ?? [];
 
   if (eligiblePlayers.length === 0) return null;
 
