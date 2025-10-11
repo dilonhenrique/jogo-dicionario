@@ -23,7 +23,7 @@ export default function RoomPreview({ onStartGame }: Props) {
   ), [isClient, code]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       {!amIConnected && (
         <div className="text-center flex flex-col gap-2 items-center py-4">
           <Spinner size="sm" />

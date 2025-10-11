@@ -7,7 +7,7 @@ export default function LoginForm() {
 
   return (
     <Form
-      className="flex flex-col"
+      className="flex flex-col w-full"
       action={async (formData) => {
         const name = formData.get("name");
         if (typeof name === "string" && name.length > 3) {
