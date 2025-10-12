@@ -1,6 +1,15 @@
 import { upperFirst } from "lodash";
 
 export function normalizeDefinition(definition: string): string {
-  const withPoint = definition.endsWith(".") ? definition : definition + ".";
-  return upperFirst(withPoint);
+  return upperFirst(
+    definition
+      .trim()
+      .replace(/\s+/g, " ")
+      .replace(/[?!*+]/g, "")
+      .replace(/\.{2,}/g, ".")
+      .replace(/\n/g, " ")
+      .replace(/["'"]/g, '"')
+      .replace(/\.\s*$/, "")
+      + "."
+  );
 }
