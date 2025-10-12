@@ -73,6 +73,7 @@ export interface GameRoundsTable {
 export interface GameFakeDefinitionsTable {
   id: ColumnType<string, string | undefined, never>;
   round_id: string;
+  room_code: string;
   author_user_id: string;
   definition: string;
   created_at: ColumnType<Date, string | Date | undefined, never>;
@@ -81,6 +82,7 @@ export interface GameFakeDefinitionsTable {
 export interface GameVotesTable {
   round_id: string;
   user_id: string;
+  room_code: string;
   definition_id: string | null;
   is_real_word: boolean;
   voted_at: ColumnType<Date, string | Date | undefined, never>;

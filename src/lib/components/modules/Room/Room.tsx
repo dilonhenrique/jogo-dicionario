@@ -11,7 +11,7 @@ import { useIsClient } from "usehooks-ts";
 import { Crown } from "lucide-react";
 
 export default function Room() {
-  const { gameHasStarted, startGame, code, configs, onlinePlayers, amIHost } = useRoomChannel();
+  const { gameHasStarted, startGame, code, configs, onlinePlayers, amIHost, gameStateChangeCounter } = useRoomChannel();
   const isClient = useIsClient();
 
   async function hostStartNewGame() {
@@ -61,7 +61,7 @@ export default function Room() {
 
     loadGameSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
+  }, [code, gameStateChangeCounter]);
 
   useEffect(() => {
     if (isClient && amIHost) {

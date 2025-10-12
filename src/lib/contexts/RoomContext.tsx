@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, PropsWithChildren, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
@@ -19,8 +19,9 @@ type RoomChannelContextValue = {
   amIConnected: boolean;
   configs: GameConfig;
   connectionStatus: ConnectionStatus;
-  onGameStateChange: () => void;
+  gameStateChangeCounter: number;
   startGame: () => void;
+  setRefetchGame: (fn: () => void) => void;
 };
 
 function lastMeta(arr: RoomUser[]) {
@@ -31,10 +32,9 @@ const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChan
 
 type Props = PropsWithChildren & {
   room: Room;
-  refetchGame?: () => void;
 };
 
-function RoomChannelProvider({ children, room, refetchGame }: Props) {
+function RoomChannelProvider({ children, room }: Props) {
   const { user } = useSession();
 
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
@@ -43,22 +43,28 @@ function RoomChannelProvider({ children, room, refetchGame }: Props) {
   const [gameHasStarted, setGameStarted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
   const [gameStateChangeCounter, setGameStateChangeCounter] = useState(0);
+  
+  // Usar useRef para sempre ter a versão mais recente do callback
+  const refetchGameRef = useRef<(() => void) | null>(null);
 
   const configs = room.configs as GameConfig;
   const amIConnected = users.some(u => u.id === user.id);
 
-  const onGameStateChange = () => {
+  const onGameStateChange = useCallback(() => {
     setGameStateChangeCounter(prev => prev + 1);
-  };
+  }, []);
 
   useEffect(() => {
     const roomChannel = roomService.joinRoomChannel({ code: room.code, user });
+    
+    serverLog(`👤 [${user.name}] Criando canal room:${room.code}`);
 
     roomChannel
       .on("presence", { event: "sync" }, async () => {
         const raw = roomChannel.presenceState() as Record<string, RoomUser[]>;
         const players = Object.values(raw).map(lastMeta);
         setUsers(players);
+        serverLog(`👥 [${user.name}] Presença sincronizada: ${players.map(p => p.name).join(', ')}`);
       })
       .on(
         "postgres_changes",
@@ -67,10 +73,10 @@ function RoomChannelProvider({ children, room, refetchGame }: Props) {
       )
       .on(
         "postgres_changes",
-        { schema: 'public', event: 'UPDATE', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+        { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
         () => {
-          serverLog('🔄 game_sessions atualizada');
-          refetchGame?.();
+          serverLog(`🔄 [${user.name}] game_sessions atualizada - refetchGame=${!!refetchGameRef.current}`);
+          refetchGameRef.current?.();
           onGameStateChange();
         }
       )
@@ -78,49 +84,48 @@ function RoomChannelProvider({ children, room, refetchGame }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_players', filter: `room_code=eq.${room.code}` },
         () => {
-          serverLog('🔄 game_players atualizada');
-          refetchGame?.();
+          serverLog(`🔄 [${user.name}] game_players atualizada`);
+          refetchGameRef.current?.();
           onGameStateChange();
         }
       )
       .on(
         "postgres_changes",
-        { schema: 'public', event: '*', table: 'game_rounds' },
-        (payload) => {
-          if (payload.new && 'room_code' in payload.new && payload.new.room_code === room.code) {
-            serverLog('🔄 game_rounds atualizada');
-            refetchGame?.();
-            onGameStateChange();
-          }
+        { schema: 'public', event: '*', table: 'game_rounds', filter: `room_code=eq.${room.code}` },
+        () => {
+          serverLog(`🔄 [${user.name}] game_rounds atualizada`);
+          refetchGameRef.current?.();
+          onGameStateChange();
         }
       )
       .on(
         "postgres_changes",
-        { schema: 'public', event: '*', table: 'game_fake_definitions' },
+        { schema: 'public', event: '*', table: 'game_fake_definitions', filter: `room_code=eq.${room.code}` },
         () => {
-          serverLog('🔄 game_fake_definitions atualizada');
-          refetchGame?.();
+          serverLog(`🔄 [${user.name}] game_fake_definitions atualizada`);
+          refetchGameRef.current?.();
         }
       )
       .on(
         "postgres_changes",
-        { schema: 'public', event: '*', table: 'game_votes' },
+        { schema: 'public', event: '*', table: 'game_votes', filter: `room_code=eq.${room.code}` },
         () => {
-          serverLog('🔄 game_votes atualizada');
-          refetchGame?.();
+          serverLog(`🔄 [${user.name}] game_votes atualizada`);
+          refetchGameRef.current?.();
         }
       )
       .subscribe(async (status, err) => {
         if (err) {
-          serverLog('Erro no channel:', err);
+          serverLog(`❌ [${user.name}] Erro no channel:`, err);
           setConnectionStatus('disconnected');
           return;
         }
 
-        serverLog('📡 Status do channel:', status);
+        serverLog(`📡 [${user.name}] Status do channel: ${status}`);
 
         if (status === "SUBSCRIBED") {
           setConnectionStatus('connected');
+          serverLog(`✅ [${user.name}] Conectado ao canal room:${room.code}`);
 
           await roomChannel.track({
             ...user,
@@ -144,6 +149,11 @@ function RoomChannelProvider({ children, room, refetchGame }: Props) {
     setGameStarted(true);
   };
 
+  const setRefetchGameCallback = useCallback((fn: () => void) => {
+    serverLog(`📝 [${user.name}] Registrando refetchGame callback`);
+    refetchGameRef.current = fn;
+  }, [user.name]);
+
   const value = useMemo(
     () => ({
       code: room.code,
@@ -155,11 +165,11 @@ function RoomChannelProvider({ children, room, refetchGame }: Props) {
       amIConnected,
       configs,
       connectionStatus,
-      onGameStateChange,
+      gameStateChangeCounter,
       startGame,
+      setRefetchGame: setRefetchGameCallback,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter]
+    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter, setRefetchGameCallback]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

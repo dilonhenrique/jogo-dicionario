@@ -24,6 +24,7 @@ export async function addVote({
   await gameVoteRepo.create({
     round_id: currentRoundId,
     user_id: userId,
+    room_code: roomCode,
     definition_id: definitionId,
     is_real_word: isRealWord,
   });

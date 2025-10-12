@@ -23,6 +23,7 @@ export async function addFakeDefinition({
   await gameFakeDefinitionRepo.create({
     id: v4(),
     round_id: currentRoundId,
+    room_code: roomCode,
     author_user_id: userId,
     definition,
   });

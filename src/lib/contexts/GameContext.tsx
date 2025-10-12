@@ -7,6 +7,7 @@ import { useRoomChannel } from "./RoomContext";
 import { useSession } from "./SessionContext";
 import { useGameSync } from "../hooks/useGameSync";
 import { gameActions } from "@/server/actions/game";
+import { serverLog } from "../utils/serverLog";
 
 type GameContextValue = {
   stage: GameStage;
@@ -16,6 +17,7 @@ type GameContextValue = {
   currentRound: WordRound | null;
   roundHistory: WordRound[];
   isLoading: boolean;
+  refetchAll: () => Promise<void>;
   actions: {
     setWordAndStartFakeStage: (word: SimpleWord) => Promise<void>;
     addFakeWord: (definition: string) => Promise<void>;
@@ -36,7 +38,7 @@ type Props = PropsWithChildren & {
 
 function GameProvider({ children, configs }: Props) {
   const { user } = useSession();
-  const { code, onGameStateChange, onlinePlayers } = useRoomChannel();
+  const { code, gameStateChangeCounter, onlinePlayers, setRefetchGame } = useRoomChannel();
   const {
     stage,
     players: gamePlayers,
@@ -61,8 +63,14 @@ function GameProvider({ children, configs }: Props) {
   }, [gamePlayers, onlinePlayers]);
 
   useEffect(() => {
+    serverLog(`📝 [GameContext] Registrando refetchAll no RoomContext`);
+    setRefetchGame(refetchAll);
+  }, [refetchAll, setRefetchGame]);
+
+  useEffect(() => {
+    serverLog(`🔔 [GameContext] gameStateChangeCounter mudou: ${gameStateChangeCounter}, chamando refetchAll`);
     refetchAll();
-  }, [onGameStateChange, refetchAll]);
+  }, [gameStateChangeCounter, refetchAll]);
 
   const setWordAndStartFakeStage = useCallback(async (word: SimpleWord) => {
     await gameActions.setWordAndStartFake({
@@ -145,6 +153,7 @@ function GameProvider({ children, configs }: Props) {
       roundHistory,
       configs,
       isLoading,
+      refetchAll,
       actions,
     }}
   >

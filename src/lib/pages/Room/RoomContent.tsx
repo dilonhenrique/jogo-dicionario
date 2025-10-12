@@ -4,7 +4,6 @@ import LoginForm from "@/lib/components/modules/Player/LoginForm";
 import Room from "@/lib/components/modules/Room/Room";
 import { RoomChannelProvider } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
-import { useGameSync } from "@/lib/hooks/useGameSync";
 import { RoomComplete } from "@/types/room";
 import { Button, Spinner } from "@heroui/react";
 import Link from "next/link";
@@ -19,7 +18,6 @@ type Props = {
 export default function RoomContent({ room }: Props) {
   const { user } = useSession();
   const isClient = useIsClient();
-  const { refetchAll } = useGameSync(room.code);
 
   const [isCheckingGame, setIsCheckingGame] = useState(true);
   const [amIInThisGame, setAmIInThisGame] = useState(true);
@@ -67,7 +65,7 @@ export default function RoomContent({ room }: Props) {
   }
 
   return (
-    <RoomChannelProvider room={room} refetchGame={refetchAll}>
+    <RoomChannelProvider room={room}>
       <Room />
     </RoomChannelProvider>
   );
