@@ -6,11 +6,19 @@ type Position = 1 | 2 | 3;
 
 type PodiumProps = {
   position: Position;
-  player: GamePlayer;
+  player?: GamePlayer;
 }
 
 export default function Pedestal({ player, position }: PodiumProps) {
   const isFirst = position === 1;
+
+  if (!player) {
+    return (
+      <div className="rounded-lg text-center p-4 pb-8 opacity-30">
+        <p className="text-foreground-400 text-sm">-</p>
+      </div>
+    );
+  }
 
   function getBorderColor(position: Position) {
     switch (position) {

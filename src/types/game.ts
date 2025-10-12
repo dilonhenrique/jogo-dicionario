@@ -22,6 +22,7 @@ export type FakeWord = Omit<WordDictionary, "label"> & {
 }
 
 export type WordRound = {
+  id: string;
   word: WordDictionary;
   fakes: FakeWord[];
 }

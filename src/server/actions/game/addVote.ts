@@ -1,26 +1,22 @@
 "use server";
 
-import { gameSessionRepo } from "@/server/repositories/gameSession";
 import { gameVoteRepo } from "@/server/repositories/gameVote";
 import { gamePlayerRepo } from "@/server/repositories/gamePlayer";
+import { gameSessionRepo } from "@/server/repositories/gameSession";
 
 export async function addVote({
+  currentRoundId,
   roomCode,
   userId,
   definitionId,
   isRealWord,
 }: {
+  currentRoundId: string;
   roomCode: string;
   userId: string;
   definitionId: string | null;
   isRealWord: boolean;
 }) {
-  const currentRoundId = await gameSessionRepo.getCurrentRoundId(roomCode);
-
-  if (!currentRoundId) {
-    throw new Error('Nenhuma rodada ativa');
-  }
-
   await gameVoteRepo.create({
     round_id: currentRoundId,
     user_id: userId,

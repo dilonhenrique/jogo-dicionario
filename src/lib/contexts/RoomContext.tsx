@@ -6,9 +6,10 @@ import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
 import { Room } from "@/types/room";
-import { ConnectionStatus, GameConfig } from "@/types/game";
+import { ConnectionStatus, GameConfig, GameStage } from "@/types/game";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/react";
+import { serverLog } from "../utils/serverLog";
 
 type RoomChannelContextValue = {
   code: string;
@@ -23,6 +24,10 @@ type RoomChannelContextValue = {
   gameStateChangeCounter: number;
   startGame: () => void;
   setRefetchGame: (fn: () => void) => void;
+  setUpdateStage: (fn: (stage: GameStage) => void) => void;
+  setUpdatePlayers: (fn: (playerData: Record<string, unknown>) => void) => void;
+  setUpdateCurrentRound: (fn: () => void) => void;
+  setUpdateVotes: (fn: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) => void;
   kickPlayer: (playerId: string) => void;
 };
 
@@ -48,6 +53,10 @@ function RoomChannelProvider({ children, room }: Props) {
   const [gameStateChangeCounter, setGameStateChangeCounter] = useState(0);
 
   const refetchGameRef = useRef<(() => void) | null>(null);
+  const updateStageRef = useRef<((stage: GameStage) => void) | null>(null);
+  const updatePlayersRef = useRef<((playerData: Record<string, unknown>) => void) | null>(null);
+  const updateCurrentRoundRef = useRef<(() => void) | null>(null);
+  const updateVotesRef = useRef<((voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) | null>(null);
 
   const configs = room.configs as GameConfig;
   const amIConnected = users.some(u => u.id === user.id);
@@ -91,9 +100,29 @@ function RoomChannelProvider({ children, room }: Props) {
       )
       .on(
         "postgres_changes",
+        { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+        (payload) => {
+          // Tentar atualizar incrementalmente usando payload
+          if (payload.eventType === 'UPDATE' && payload.new?.stage) {
+            updateStageRef.current?.(payload.new.stage as GameStage);
+          } else {
+            // Fallback: refetch completo
+            refetchGameRef.current?.();
+          }
+          onGameStateChange();
+        }
+      )
+      .on(
+        "postgres_changes",
         { schema: 'public', event: '*', table: 'game_players', filter: `room_code=eq.${room.code}` },
-        () => {
-          refetchGameRef.current?.();
+        (payload) => {
+          // Atualizar jogador incrementalmente
+          if ((payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') && payload.new) {
+            updatePlayersRef.current?.(payload.new as Record<string, unknown>);
+          } else {
+            // DELETE ou outro: refetch
+            refetchGameRef.current?.();
+          }
           onGameStateChange();
         }
       )
@@ -101,7 +130,8 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_rounds', filter: `room_code=eq.${room.code}` },
         () => {
-          refetchGameRef.current?.();
+          // Rounds são complexos (precisam de fakes), sempre refetch
+          updateCurrentRoundRef.current?.();
           onGameStateChange();
         }
       )
@@ -109,14 +139,27 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_fake_definitions', filter: `room_code=eq.${room.code}` },
         () => {
-          refetchGameRef.current?.();
+          // Fakes fazem parte do currentRound, refetch da rodada
+          updateCurrentRoundRef.current?.();
+          onGameStateChange();
         }
       )
       .on(
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_votes', filter: `room_code=eq.${room.code}` },
-        () => {
-          refetchGameRef.current?.();
+        (payload) => {
+          serverLog(">>> game_votes event:", payload);
+          
+          // DELETE usa payload.old, INSERT/UPDATE usa payload.new
+          const voteData = payload.eventType === 'DELETE' ? payload.old : payload.new;
+          
+          if (voteData) {
+            updateVotesRef.current?.(voteData as Record<string, unknown>, payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE');
+          } else {
+            // Fallback se não houver dados
+            refetchGameRef.current?.();
+          }
+          onGameStateChange();
         }
       )
       .subscribe(async (status, err) => {
@@ -152,6 +195,22 @@ function RoomChannelProvider({ children, room }: Props) {
     refetchGameRef.current = fn;
   }, []);
 
+  const setUpdateStageCallback = useCallback((fn: (stage: GameStage) => void) => {
+    updateStageRef.current = fn;
+  }, []);
+
+  const setUpdatePlayersCallback = useCallback((fn: (playerData: Record<string, unknown>) => void) => {
+    updatePlayersRef.current = fn;
+  }, []);
+
+  const setUpdateCurrentRoundCallback = useCallback((fn: () => void) => {
+    updateCurrentRoundRef.current = fn;
+  }, []);
+
+  const setUpdateVotesCallback = useCallback((fn: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) => {
+    updateVotesRef.current = fn;
+  }, []);
+
   const kickPlayer = useCallback((playerId: string) => {
     if (!channel || user.id !== hostId) {
       return;
@@ -178,9 +237,13 @@ function RoomChannelProvider({ children, room }: Props) {
       gameStateChangeCounter,
       startGame,
       setRefetchGame: setRefetchGameCallback,
+      setUpdateStage: setUpdateStageCallback,
+      setUpdatePlayers: setUpdatePlayersCallback,
+      setUpdateCurrentRound: setUpdateCurrentRoundCallback,
+      setUpdateVotes: setUpdateVotesCallback,
       kickPlayer,
     }),
-    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter, setRefetchGameCallback, kickPlayer]
+    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, kickPlayer]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

@@ -50,6 +50,7 @@ export async function getCurrentRound(roomCode: string): Promise<WordRound | nul
   );
 
   return {
+    id: firstRow.round_id ?? '',
     word: {
       id: firstRow.word_id ?? '',
       label: firstRow.word_label,

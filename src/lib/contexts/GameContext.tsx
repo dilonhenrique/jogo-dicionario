@@ -7,7 +7,6 @@ import { useRoomChannel } from "./RoomContext";
 import { useSession } from "./SessionContext";
 import { useGameSync } from "../hooks/useGameSync";
 import { gameActions } from "@/server/actions/game";
-import { serverLog } from "../utils/serverLog";
 
 type GameContextValue = {
   stage: GameStage;
@@ -39,7 +38,16 @@ type Props = PropsWithChildren & {
 
 function GameProvider({ children, configs }: Props) {
   const { user } = useSession();
-  const { code, gameStateChangeCounter, onlinePlayers, setRefetchGame } = useRoomChannel();
+  const { 
+    code, 
+    gameStateChangeCounter, 
+    onlinePlayers, 
+    setRefetchGame,
+    setUpdateStage,
+    setUpdatePlayers,
+    setUpdateCurrentRound,
+    setUpdateVotes,
+  } = useRoomChannel();
   const {
     stage,
     players: gamePlayers,
@@ -50,6 +58,10 @@ function GameProvider({ children, configs }: Props) {
     isLoading,
     refetchAll,
     refetchCurrentRoundPoints,
+    updateStageFromPayload,
+    updatePlayersFromPayload,
+    updateCurrentRoundFromPayload,
+    updateVotesFromPayload,
   } = useGameSync(code);
 
   const votes: GameVotes = votesMap as GameVotes;
@@ -66,12 +78,17 @@ function GameProvider({ children, configs }: Props) {
   }, [gamePlayers, onlinePlayers]);
 
   useEffect(() => {
-    serverLog(`📝 [GameContext] Registrando refetchAll no RoomContext`);
     setRefetchGame(refetchAll);
   }, [refetchAll, setRefetchGame]);
 
   useEffect(() => {
-    serverLog(`🔔 [GameContext] gameStateChangeCounter mudou: ${gameStateChangeCounter}, chamando refetchAll`);
+    setUpdateStage(updateStageFromPayload);
+    setUpdatePlayers(updatePlayersFromPayload);
+    setUpdateCurrentRound(updateCurrentRoundFromPayload);
+    setUpdateVotes(updateVotesFromPayload);
+  }, [setUpdateStage, setUpdatePlayers, setUpdateCurrentRound, setUpdateVotes, updateStageFromPayload, updatePlayersFromPayload, updateCurrentRoundFromPayload, updateVotesFromPayload]);
+
+  useEffect(() => {
     refetchAll();
   }, [gameStateChangeCounter, refetchAll]);
 
@@ -89,24 +106,38 @@ function GameProvider({ children, configs }: Props) {
   }, [code]);
 
   const addFakeWord = useCallback(async (definition: string) => {
+    if (!currentRound?.id) {
+      throw new Error('Nenhuma rodada ativa');
+    }
+    
     await gameActions.addFakeDefinition({
+      currentRoundId: currentRound.id,
       roomCode: code,
       userId: user.id,
       definition,
     });
-  }, [code, user.id]);
+  }, [code, user.id, currentRound]);
 
   const removeFakeWord = useCallback(async () => {
+    if (!currentRound?.id) {
+      throw new Error('Nenhuma rodada ativa');
+    }
+    
     await gameActions.removeFakeDefinition({
-      roomCode: code,
+      currentRoundId: currentRound.id,
       userId: user.id,
     });
-  }, [code, user.id]);
+  }, [user.id, currentRound]);
 
   const vote = useCallback(async (definitionId: string) => {
-    const isRealWord = currentRound?.word.id === definitionId;
+    if (!currentRound?.id) {
+      throw new Error('Nenhuma rodada ativa');
+    }
+    
+    const isRealWord = currentRound.word.id === definitionId;
     
     await gameActions.addVote({
+      currentRoundId: currentRound.id,
       roomCode: code,
       userId: user.id,
       definitionId: isRealWord ? null : definitionId,
@@ -115,11 +146,15 @@ function GameProvider({ children, configs }: Props) {
   }, [code, user.id, currentRound]);
 
   const removeVote = useCallback(async () => {
+    if (!currentRound?.id) {
+      throw new Error('Nenhuma rodada ativa');
+    }
+    
     await gameActions.removeVote({
-      roomCode: code,
+      currentRoundId: currentRound.id,
       userId: user.id,
     });
-  }, [code, user.id]);
+  }, [user.id, currentRound]);
 
   const checkoutCurrentRound = useCallback(async () => {
     await gameActions.checkoutRound({

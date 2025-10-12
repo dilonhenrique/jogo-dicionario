@@ -1,25 +1,21 @@
 "use server";
 
-import { gameSessionRepo } from "@/server/repositories/gameSession";
 import { gameFakeDefinitionRepo } from "@/server/repositories/gameFakeDefinition";
 import { gamePlayerRepo } from "@/server/repositories/gamePlayer";
+import { gameSessionRepo } from "@/server/repositories/gameSession";
 import { v4 } from "uuid";
 
 export async function addFakeDefinition({
+  currentRoundId,
   roomCode,
   userId,
   definition,
 }: {
+  currentRoundId: string;
   roomCode: string;
   userId: string;
   definition: string;
 }) {
-  const currentRoundId = await gameSessionRepo.getCurrentRoundId(roomCode);
-
-  if (!currentRoundId) {
-    throw new Error('Nenhuma rodada ativa');
-  }
-
   await gameFakeDefinitionRepo.create({
     id: v4(),
     round_id: currentRoundId,

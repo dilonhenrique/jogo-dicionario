@@ -5,6 +5,7 @@ import { GameStage, WordRound } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { gameService } from "@/server/services/game";
 import { calculateRoundPoints } from "@/lib/utils/calculateRoundPoints";
+import { serverLog } from "@/lib/utils/serverLog";
 
 export type UseGameSyncReturn = {
   stage: GameStage;
@@ -19,7 +20,11 @@ export type UseGameSyncReturn = {
   refetchPlayers: () => Promise<void>;
   refetchCurrentRound: () => Promise<void>;
   refetchVotes: () => Promise<void>;
-  refetchCurrentRoundPoints: () => void; // Local calculation - no async needed
+  refetchCurrentRoundPoints: () => void;
+  updateStageFromPayload: (newStage: GameStage) => void;
+  updatePlayersFromPayload: (playerData: Record<string, unknown>) => void;
+  updateCurrentRoundFromPayload: () => void;
+  updateVotesFromPayload: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void;
 };
 
 export function useGameSync(roomCode: string): UseGameSyncReturn {
@@ -96,6 +101,72 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     setCurrentRoundPoints(pointsMap);
   }, [votes, currentRound]);
 
+  // Funções de atualização incremental a partir de payloads do Supabase
+  const updateStageFromPayload = useCallback((newStage: GameStage) => {
+    setStage(newStage);
+  }, []);
+
+  const updatePlayersFromPayload = useCallback((playerData: Record<string, unknown>) => {
+    const playerId = playerData.user_id as string;
+    const playerName = playerData.user_name as string;
+    const playerPoints = playerData.points as number;
+
+    setPlayers(prev => {
+      const existingIndex = prev.findIndex(p => p.id === playerId);
+      const updatedPlayer: GamePlayer = {
+        id: playerId,
+        name: playerName,
+        points: playerPoints,
+        isHost: false, // Será preenchido no GameContext
+        onlineAt: null, // Será preenchido no GameContext
+      };
+
+      if (existingIndex >= 0) {
+        const newPlayers = [...prev];
+        newPlayers[existingIndex] = updatedPlayer;
+        return newPlayers;
+      } else {
+        return [...prev, updatedPlayer];
+      }
+    });
+  }, []);
+
+  const updateCurrentRoundFromPayload = useCallback(() => {
+    // Para rounds, é mais complexo pois precisa das fakes
+    // Neste caso, melhor fazer refetch completo
+    refetchCurrentRound();
+  }, [refetchCurrentRound]);
+
+  const updateVotesFromPayload = useCallback((voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => {
+    const userId = voteData.user_id as string;
+    const definitionId = voteData.definition_id as string | null;
+    
+    setVotes(prev => {
+      const newVotes = new Map(prev);
+      
+      if (eventType === 'DELETE') {
+        newVotes.delete(userId);
+      } else {
+        // INSERT ou UPDATE
+        if (definitionId) {
+          newVotes.set(userId, definitionId);
+        } else {
+          // Votou na palavra real - usa id da rodada atual
+          const wordId = currentRound?.word?.id;
+          if (wordId) {
+            newVotes.set(userId, wordId);
+          } else {
+            // Se não tiver rodada atual, não altera
+            serverLog("updateVotesFromPayload: No currentRound.word.id available");
+            return prev;
+          }
+        }
+      }
+      
+      return newVotes;
+    });
+  }, [currentRound]);
+
   useEffect(() => {
     refetchAll();
   }, [refetchAll]);
@@ -114,5 +185,9 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     refetchCurrentRound,
     refetchVotes,
     refetchCurrentRoundPoints,
+    updateStageFromPayload,
+    updatePlayersFromPayload,
+    updateCurrentRoundFromPayload,
+    updateVotesFromPayload,
   };
 }

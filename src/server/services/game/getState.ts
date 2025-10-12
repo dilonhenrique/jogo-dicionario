@@ -38,6 +38,7 @@ export async function getState(roomCode: string): Promise<GameStateData | null> 
     const { currentRound: round, fakes = [], votes = [] } = sessionData;
 
     currentRound = {
+      id: round.id ?? '',
       word: {
         id: round.word_id ?? '',
         label: round.word_label,

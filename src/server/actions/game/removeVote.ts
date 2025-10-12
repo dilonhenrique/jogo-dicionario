@@ -1,21 +1,14 @@
 "use server";
 
-import { gameSessionRepo } from "@/server/repositories/gameSession";
 import { gameVoteRepo } from "@/server/repositories/gameVote";
 
 export async function removeVote({
-  roomCode,
+  currentRoundId,
   userId,
 }: {
-  roomCode: string;
+  currentRoundId: string;
   userId: string;
 }) {
-  const currentRoundId = await gameSessionRepo.getCurrentRoundId(roomCode);
-
-  if (!currentRoundId) {
-    throw new Error('Nenhuma rodada ativa');
-  }
-
   await gameVoteRepo.remove(currentRoundId, userId);
 
   return { success: true };
