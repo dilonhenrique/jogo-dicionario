@@ -4,13 +4,14 @@ import type { Database } from "./types";
 
 let _db: Kysely<Database> | undefined;
 
+// Função para criar/obter a instância do DB (usada pelos scripts com dotenv)
 export function getDb(): Kysely<Database> {
   if (_db) return _db;
 
   const connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
-    throw new Error("Não tem env do banco");
+    throw new Error("DATABASE_URL não configurada");
   }
 
   const pool = new Pool({ connectionString, max: 10 });
@@ -31,21 +32,22 @@ export async function destroyDb(): Promise<void> {
   }
 }
 
-const db = new Proxy({} as Kysely<Database>, {
-  get(_target, prop) {
-    const instance = getDb();
-    const value = instance[prop as keyof Kysely<Database>];
-    return typeof value === 'function' ? value.bind(instance) : value;
-  },
-  has(_target, prop) {
-    return prop in getDb();
-  },
-  ownKeys() {
-    return Reflect.ownKeys(getDb());
-  },
-  getOwnPropertyDescriptor(_target, prop) {
-    return Reflect.getOwnPropertyDescriptor(getDb(), prop);
-  }
-});
+// Instância direta para uso na aplicação Next.js (lê env nativamente)
+// Só inicializa se DATABASE_URL estiver disponível (não roda em scripts com dotenv)
+let db: Kysely<Database>;
+
+if (process.env.DATABASE_URL) {
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 10 });
+  db = new Kysely<Database>({
+    dialect: new PostgresDialect({ pool }),
+  });
+} else {
+  // Em scripts, usar getDb() que lê a env depois do dotenv.config()
+  db = new Proxy({} as Kysely<Database>, {
+    get() {
+      throw new Error('Use getDb() em scripts, não db diretamente');
+    }
+  });
+}
 
 export default db;

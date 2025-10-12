@@ -18,7 +18,7 @@ export async function setWordAndStartFake({
     id: v4(),
     room_code: roomCode,
     round_number: nextRoundNumber,
-    word_id: v4(), // ID temporário para palavra não do banco
+    word_id: null, // Palavra não vem do banco de palavras
     word_label: word.label,
     word_definition: word.definition,
   });

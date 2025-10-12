@@ -63,7 +63,7 @@ export interface GameRoundsTable {
   id: ColumnType<string, string | undefined, never>;
   room_code: string;
   round_number: number;
-  word_id: string;
+  word_id: string | null;
   word_label: string;
   word_definition: string;
   started_at: ColumnType<Date, string | Date | undefined, never>;
