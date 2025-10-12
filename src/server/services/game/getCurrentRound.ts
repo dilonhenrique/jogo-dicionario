@@ -1,35 +1,60 @@
 "use server";
 
-import { gameRoundRepo } from "@/server/repositories/gameRound";
-import { gameFakeDefinitionRepo } from "@/server/repositories/gameFakeDefinition";
-import { gamePlayerRepo } from "@/server/repositories/gamePlayer";
+import db from "@/infra/db";
 import { WordRound } from "@/types/game";
 
 export async function getCurrentRound(roomCode: string): Promise<WordRound | null> {
-  const round = await gameRoundRepo.getCurrent(roomCode);
-  
-  if (!round) {
+  // Busca a rodada atual com todas as definições falsas e autores em UMA query com JOIN
+  const result = await db
+    .selectFrom('game_sessions as gs')
+    .innerJoin('game_rounds as gr', 'gr.id', 'gs.current_round_id')
+    .leftJoin('game_fake_definitions as gfd', 'gfd.round_id', 'gr.id')
+    .leftJoin('game_players as gp', (join) =>
+      join
+        .onRef('gp.user_id', '=', 'gfd.author_user_id')
+        .on('gp.room_code', '=', roomCode)
+    )
+    .where('gs.room_code', '=', roomCode)
+    .select([
+      'gr.id as round_id',
+      'gr.word_id',
+      'gr.word_label',
+      'gr.word_definition',
+      'gfd.id as fake_id',
+      'gfd.definition as fake_definition',
+      'gfd.author_user_id',
+      'gp.user_name as author_name',
+    ])
+    .execute();
+
+  if (result.length === 0) {
     return null;
   }
 
-  const [fakes, players] = await Promise.all([
-    gameFakeDefinitionRepo.getByRound(round.id),
-    gamePlayerRepo.get(roomCode),
-  ]);
+  // Agrupa os resultados (pode vir múltiplas linhas por causa do LEFT JOIN)
+  const firstRow = result[0];
+  const fakes = result
+    .filter(row => row.fake_id !== null)
+    .map(row => ({
+      id: row.fake_id!,
+      definition: row.fake_definition!,
+      author: {
+        id: row.author_user_id!,
+        name: row.author_name || "Unknown",
+      },
+    }));
+
+  // Remove duplicatas (caso hajam)
+  const uniqueFakes = Array.from(
+    new Map(fakes.map(f => [f.id, f])).values()
+  );
 
   return {
     word: {
-      id: round.word_id,
-      label: round.word_label,
-      definition: round.word_definition,
+      id: firstRow.word_id ?? '',
+      label: firstRow.word_label,
+      definition: firstRow.word_definition,
     },
-    fakes: fakes.map(f => ({
-      id: f.id,
-      definition: f.definition,
-      author: {
-        id: f.author_user_id,
-        name: players.find(p => p.user_id === f.author_user_id)?.user_name || "Unknown",
-      },
-    })),
+    fakes: uniqueFakes,
   };
 }

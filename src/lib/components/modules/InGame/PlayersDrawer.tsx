@@ -5,8 +5,10 @@ import { Users2 } from "lucide-react";
 import Leaderboard from "../Player/Leaderboard";
 
 export default function PlayersDrawerButton() {
-  const { players } = useGame();
+  const { players, stage, currentRoundPoints } = useGame();
   const [isOpen, setOpen] = useState(false);
+
+  const showRoundPoints = stage === 'blame';
 
   return (
     <>
@@ -29,7 +31,10 @@ export default function PlayersDrawerButton() {
           </DrawerHeader>
 
           <DrawerBody>
-            <Leaderboard players={players} />
+            <Leaderboard 
+              players={players} 
+              roundPoints={showRoundPoints ? currentRoundPoints : undefined}
+            />
           </DrawerBody>
         </DrawerContent>
       </Drawer>

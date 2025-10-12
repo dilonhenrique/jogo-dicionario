@@ -3,13 +3,19 @@
 import db from "@/infra/db";
 
 /**
- * Busca a sessão com a rodada atual completa (incluindo fakes e votos)
+ * Busca a sessão com a rodada atual completa (incluindo fakes com autores e votos)
+ * Tudo em UMA query com JOINs
  */
 export default async function getWithCurrentRound(roomCode: string) {
   const result = await db
     .selectFrom('game_sessions as gs')
     .leftJoin('game_rounds as gr', 'gs.current_round_id', 'gr.id')
     .leftJoin('game_fake_definitions as gfd', 'gr.id', 'gfd.round_id')
+    .leftJoin('game_players as gp', (join) =>
+      join
+        .onRef('gp.user_id', '=', 'gfd.author_user_id')
+        .on('gp.room_code', '=', roomCode)
+    )
     .leftJoin('game_votes as gv', 'gr.id', 'gv.round_id')
     .where('gs.room_code', '=', roomCode)
     .select([
@@ -30,6 +36,7 @@ export default async function getWithCurrentRound(roomCode: string) {
       'gfd.author_user_id as fake_author_id',
       'gfd.definition as fake_definition',
       'gfd.created_at as fake_created_at',
+      'gp.user_name as fake_author_name', // Nome do autor vem do JOIN!
       
       'gv.user_id as vote_user_id',
       'gv.definition_id as vote_definition_id',
@@ -78,6 +85,7 @@ export default async function getWithCurrentRound(roomCode: string) {
         id: row.fake_id,
         round_id: row.round_id!,
         author_user_id: row.fake_author_id!,
+        author_name: row.fake_author_name || 'Unknown', // Nome já vem do JOIN!
         definition: row.fake_definition!,
         created_at: row.fake_created_at!,
       });

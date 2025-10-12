@@ -16,6 +16,7 @@ type GameContextValue = {
   configs: GameConfig;
   currentRound: WordRound | null;
   roundHistory: WordRound[];
+  currentRoundPoints: Map<string, number>;
   isLoading: boolean;
   refetchAll: () => Promise<void>;
   actions: {
@@ -45,8 +46,10 @@ function GameProvider({ children, configs }: Props) {
     currentRound,
     roundHistory,
     votes: votesMap,
+    currentRoundPoints,
     isLoading,
     refetchAll,
+    refetchCurrentRoundPoints,
   } = useGameSync(code);
 
   const votes: GameVotes = votesMap as GameVotes;
@@ -71,6 +74,12 @@ function GameProvider({ children, configs }: Props) {
     serverLog(`🔔 [GameContext] gameStateChangeCounter mudou: ${gameStateChangeCounter}, chamando refetchAll`);
     refetchAll();
   }, [gameStateChangeCounter, refetchAll]);
+
+  useEffect(() => {
+    if (stage === 'blame') {
+      refetchCurrentRoundPoints();
+    }
+  }, [stage, refetchCurrentRoundPoints]);
 
   const setWordAndStartFakeStage = useCallback(async (word: SimpleWord) => {
     await gameActions.setWordAndStartFake({
@@ -151,6 +160,7 @@ function GameProvider({ children, configs }: Props) {
       votes,
       currentRound,
       roundHistory,
+      currentRoundPoints,
       configs,
       isLoading,
       refetchAll,

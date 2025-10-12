@@ -39,7 +39,7 @@ export async function getState(roomCode: string): Promise<GameStateData | null> 
 
     currentRound = {
       word: {
-        id: round.word_id,
+        id: round.word_id ?? '',
         label: round.word_label,
         definition: round.word_definition,
       },
@@ -48,13 +48,13 @@ export async function getState(roomCode: string): Promise<GameStateData | null> 
         definition: f.definition,
         author: {
           id: f.author_user_id,
-          name: playersData.find(p => p.user_id === f.author_user_id)?.user_name || "Unknown",
+          name: f.author_name, // Já vem do JOIN no repository!
         },
       })),
     };
 
     votes.forEach(v => {
-      votesMap.set(v.user_id, v.definition_id || round.word_id);
+      votesMap.set(v.user_id, v.definition_id || round.word_id || '');
     });
   }
 

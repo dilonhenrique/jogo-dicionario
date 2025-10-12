@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { GameStage, WordRound } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { gameService } from "@/server/services/game";
+import { calculateRoundPoints } from "@/lib/utils/calculateRoundPoints";
 
 export type UseGameSyncReturn = {
   stage: GameStage;
@@ -11,12 +12,14 @@ export type UseGameSyncReturn = {
   currentRound: WordRound | null;
   roundHistory: WordRound[];
   votes: Map<string, string>;
+  currentRoundPoints: Map<string, number>;
   isLoading: boolean;
   refetchAll: () => Promise<void>;
   refetchStage: () => Promise<void>;
   refetchPlayers: () => Promise<void>;
   refetchCurrentRound: () => Promise<void>;
   refetchVotes: () => Promise<void>;
+  refetchCurrentRoundPoints: () => void; // Local calculation - no async needed
 };
 
 export function useGameSync(roomCode: string): UseGameSyncReturn {
@@ -25,6 +28,7 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
   const [currentRound, setCurrentRound] = useState<WordRound | null>(null);
   const [roundHistory, setRoundHistory] = useState<WordRound[]>([]);
   const [votes, setVotes] = useState<Map<string, string>>(new Map());
+  const [currentRoundPoints, setCurrentRoundPoints] = useState<Map<string, number>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
 
   const refetchAll = useCallback(async () => {
@@ -86,6 +90,12 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     }
   }, [roomCode]);
 
+  const refetchCurrentRoundPoints = useCallback(() => {
+    // Calcula localmente - sem requisição!
+    const pointsMap = calculateRoundPoints(votes, currentRound);
+    setCurrentRoundPoints(pointsMap);
+  }, [votes, currentRound]);
+
   useEffect(() => {
     refetchAll();
   }, [refetchAll]);
@@ -96,11 +106,13 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     currentRound,
     roundHistory,
     votes,
+    currentRoundPoints,
     isLoading,
     refetchAll,
     refetchStage,
     refetchPlayers,
     refetchCurrentRound,
     refetchVotes,
+    refetchCurrentRoundPoints,
   };
 }
