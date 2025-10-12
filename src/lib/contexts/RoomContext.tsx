@@ -5,7 +5,7 @@ import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
 import { useSession } from "./SessionContext";
-import { Room } from "@/types/room";
+import { RoomComplete } from "@/types/room";
 import { ConnectionStatus, GameConfig, GameStage } from "@/types/game";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/react";
@@ -20,7 +20,7 @@ type RoomChannelContextValue = {
   amIConnected: boolean;
   configs: GameConfig;
   connectionStatus: ConnectionStatus;
-  gameStateChangeCounter: number;
+  lastEventTime: number;
   startGame: () => void;
   setRefetchGame: (fn: () => void) => void;
   setUpdateStage: (fn: (stage: GameStage) => void) => void;
@@ -37,7 +37,7 @@ function lastMeta(arr: RoomUser[]) {
 const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChannelContextValue);
 
 type Props = PropsWithChildren & {
-  room: Room;
+  room: RoomComplete;
 };
 
 function RoomChannelProvider({ children, room }: Props) {
@@ -47,9 +47,9 @@ function RoomChannelProvider({ children, room }: Props) {
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [hostId, setHostId] = useState(room.host.id);
   const [users, setUsers] = useState<RoomUser[]>([]);
-  const [gameHasStarted, setGameStarted] = useState(false);
+  const [gameHasStarted, setGameStarted] = useState(!!room.session);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
-  const [gameStateChangeCounter, setGameStateChangeCounter] = useState(0);
+  const [lastEventTime, setLastEventTime] = useState(Date.now());
 
   const refetchGameRef = useRef<(() => void) | null>(null);
   const updateStageRef = useRef<((stage: GameStage) => void) | null>(null);
@@ -61,7 +61,7 @@ function RoomChannelProvider({ children, room }: Props) {
   const amIConnected = users.some(u => u.id === user.id);
 
   const onGameStateChange = useCallback(() => {
-    setGameStateChangeCounter(prev => prev + 1);
+    setLastEventTime(Date.now());
   }, []);
 
   useEffect(() => {
@@ -181,6 +181,36 @@ function RoomChannelProvider({ children, room }: Props) {
     };
   }, [room.code, user, onGameStateChange, router]);
 
+  useEffect(() => {
+    if (!gameHasStarted) return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refetchGameRef.current?.();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [gameHasStarted]);
+
+  useEffect(() => {
+    if (!gameHasStarted) return;
+
+    const pollInterval = setInterval(() => {
+      const timeSinceLastEvent = Date.now() - lastEventTime;
+
+      if (timeSinceLastEvent > 10000 && !document.hidden) {
+        refetchGameRef.current?.();
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [gameHasStarted, lastEventTime]);
+
   const startGame = () => {
     setGameStarted(true);
   };
@@ -228,7 +258,7 @@ function RoomChannelProvider({ children, room }: Props) {
       amIConnected,
       configs,
       connectionStatus,
-      gameStateChangeCounter,
+      lastEventTime,
       startGame,
       setRefetchGame: setRefetchGameCallback,
       setUpdateStage: setUpdateStageCallback,
@@ -237,7 +267,7 @@ function RoomChannelProvider({ children, room }: Props) {
       setUpdateVotes: setUpdateVotesCallback,
       kickPlayer,
     }),
-    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, gameStateChangeCounter, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, kickPlayer]
+    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, lastEventTime, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, kickPlayer]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

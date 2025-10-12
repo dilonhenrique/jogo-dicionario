@@ -40,7 +40,6 @@ function GameProvider({ children, configs }: Props) {
   const { user } = useSession();
   const { 
     code, 
-    gameStateChangeCounter, 
     onlinePlayers, 
     setRefetchGame,
     setUpdateStage,
@@ -87,10 +86,6 @@ function GameProvider({ children, configs }: Props) {
     setUpdateCurrentRound(updateCurrentRoundFromPayload);
     setUpdateVotes(updateVotesFromPayload);
   }, [setUpdateStage, setUpdatePlayers, setUpdateCurrentRound, setUpdateVotes, updateStageFromPayload, updatePlayersFromPayload, updateCurrentRoundFromPayload, updateVotesFromPayload]);
-
-  useEffect(() => {
-    refetchAll();
-  }, [gameStateChangeCounter, refetchAll]);
 
   useEffect(() => {
     if (stage === 'blame') {
