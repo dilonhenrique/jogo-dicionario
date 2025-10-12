@@ -1,5 +1,5 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { Spinner, Button } from "@heroui/react";
+import { Spinner, Button, addToast } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
 import HostControlButton from "../Host/HostControlButton";
 import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
@@ -7,13 +7,14 @@ import CopyButton from "../../ui/CopyButton/CopyButton";
 import { useIsClient } from "usehooks-ts";
 import { useMemo } from "react";
 import { CopyIcon, Crown, SwordsIcon } from "lucide-react";
+import { Player } from "@/types/user";
 
 type Props = {
   onStartGame: () => void;
 }
 
 export default function RoomPreview({ onStartGame }: Props) {
-  const { onlinePlayers, amIConnected, amIHost, configs, code } = useRoomChannel();
+  const { onlinePlayers, amIConnected, amIHost, configs, code, kickPlayer } = useRoomChannel();
   const isClient = useIsClient();
 
   const roomUrl = useMemo(() => (
@@ -21,6 +22,17 @@ export default function RoomPreview({ onStartGame }: Props) {
       ? `${window.location.protocol}//${window.location.host}/r/${code}`
       : `/r/${code}`
   ), [isClient, code]);
+
+  function handleKickPlayer(player: Player) {
+    kickPlayer(player.id);
+
+    addToast({
+      title: "Jogador expulso",
+      description: `${player.name} foi removido da sala.`,
+      color: "danger",
+      severity: 'success',
+    });
+  }
 
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -99,7 +111,10 @@ export default function RoomPreview({ onStartGame }: Props) {
 
       <div className="flex flex-col gap-2">
         <h4>Participantes ({onlinePlayers.length})</h4>
-        <PlayerList players={onlinePlayers} />
+        <PlayerList
+          players={onlinePlayers}
+          onRemove={amIHost ? (player) => handleKickPlayer(player) : undefined}
+        />
       </div>
     </div>
   );

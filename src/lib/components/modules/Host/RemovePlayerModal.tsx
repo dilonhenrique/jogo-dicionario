@@ -1,28 +1,22 @@
-import { useGame } from "@/lib/contexts/GameContext";
 import { Player } from "@/types/user";
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
 
 type Props = {
   player: Player | null;
   onClose: () => void;
+  onRemove: (player: Player) => void;
 }
 
-export default function RemovePlayerModal({ player, ...props }: Props) {
-  const { actions } = useGame();
+export default function RemovePlayerModal({ player, onRemove, onClose }: Props) {
+  function handlePress(player: Player | null) {
+    if (!player) return;
 
-  async function handleRemovePlayer(userId?: string) {
-    if (!userId) return;
-
-    try {
-      await actions.kickPlayer(userId);
-      props.onClose();
-    } catch (error) {
-      console.error("Erro ao expulsar jogador:", error);
-    }
+    onRemove(player);
+    onClose();
   }
 
   return (
-    <Modal isOpen={!!player} {...props}>
+    <Modal isOpen={!!player} onClose={onClose}>
       <ModalContent>
         <ModalHeader>Expulsar jogador?</ModalHeader>
 
@@ -33,19 +27,19 @@ export default function RemovePlayerModal({ player, ...props }: Props) {
         <ModalFooter>
           <Button
             variant="bordered"
-            onPress={props.onClose}
+            onPress={onClose}
           >
             Cancelar
           </Button>
 
           <Button
             color="danger"
-            onPress={() => handleRemovePlayer(player?.id)}
+            onPress={() => handlePress(player)}
           >
             Expulsar
           </Button>
         </ModalFooter>
       </ModalContent>
-    </Modal>
+    </Modal >
   );
 }
