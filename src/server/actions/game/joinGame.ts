@@ -11,7 +11,6 @@ export async function joinGame({
   userId: string;
   userName: string;
 }) {
-  // Verificar se jogador já existe
   const existingPlayers = await gamePlayerRepo.get(roomCode);
   const playerExists = existingPlayers.some(p => p.user_id === userId);
 
@@ -19,7 +18,6 @@ export async function joinGame({
     return { success: true, alreadyJoined: true };
   }
 
-  // Adicionar novo jogador
   await gamePlayerRepo.create({
     room_code: roomCode,
     user_id: userId,

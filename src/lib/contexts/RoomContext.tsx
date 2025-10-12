@@ -64,7 +64,6 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: 'UPDATE', table: 'rooms', filter: `code=eq.${room.code}` },
         (payload) => { setHostId(payload.new.host_user_id) }
       )
-      // Listeners para mudanças no estado do jogo
       .on(
         "postgres_changes",
         { schema: 'public', event: 'UPDATE', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
@@ -85,7 +84,6 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_rounds' },
         (payload) => {
-          // Verificar se é uma rodada desta sala
           if (payload.new && 'room_code' in payload.new && payload.new.room_code === room.code) {
             serverLog('🔄 game_rounds atualizada');
             onGameStateChange();

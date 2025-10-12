@@ -14,23 +14,18 @@ export async function restartGame({
   roomCode: string;
   configs: GameConfig;
 }) {
-  // 1. Resetar pontos e buscar rodadas abertas em paralelo
   const [, openRounds] = await Promise.all([
     gamePlayerRepo.reset(roomCode),
     gameRoundRepo.getOpenRounds(roomCode),
   ]);
 
-  // 2. Finalizar todas as rodadas abertas em paralelo
   await Promise.all(
     openRounds.map(round => gameRoundRepo.finish(round.id))
   );
 
-  // 3. Iniciar nova rodada
   if (configs.enableHostChooseWord) {
-    // Host deve escolher palavra
     await gameSessionRepo.updateStageAndRound(roomCode, 'word_pick', null);
   } else {
-    // Escolher palavra aleatória e começar
     const [newWord] = await dictionaryService.getNewRandomWord();
     const nextRoundNumber = await gameRoundRepo.getNextRoundNumber(roomCode);
 

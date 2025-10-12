@@ -17,7 +17,6 @@ export default function Room() {
   async function hostStartNewGame() {
     const hostChooseWord = configs.enableHostChooseWord === true;
 
-    // 1. Criar sessão do jogo
     await gameSessionService.create({
       roomCode: code,
       initialState: {
@@ -29,7 +28,6 @@ export default function Room() {
       }
     });
 
-    // 2. Adicionar todos os jogadores online
     for (const player of onlinePlayers) {
       await gameActions.joinGame({
         roomCode: code,
@@ -38,7 +36,6 @@ export default function Room() {
       });
     }
 
-    // 3. Se não for host escolhendo palavra, já sorteia e começa
     if (!hostChooseWord) {
       const [word] = await dictionaryService.getNewRandomWord();
       await gameActions.setWordAndStartFake({

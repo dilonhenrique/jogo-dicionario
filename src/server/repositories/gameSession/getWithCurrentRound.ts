@@ -13,13 +13,11 @@ export default async function getWithCurrentRound(roomCode: string) {
     .leftJoin('game_votes as gv', 'gr.id', 'gv.round_id')
     .where('gs.room_code', '=', roomCode)
     .select([
-      // Session fields
       'gs.room_code',
       'gs.stage',
       'gs.current_round_id',
       'gs.created_at as session_created_at',
       
-      // Round fields
       'gr.id as round_id',
       'gr.round_number',
       'gr.word_id',
@@ -28,13 +26,11 @@ export default async function getWithCurrentRound(roomCode: string) {
       'gr.started_at as round_started_at',
       'gr.finished_at as round_finished_at',
       
-      // Fake definition fields
       'gfd.id as fake_id',
       'gfd.author_user_id as fake_author_id',
       'gfd.definition as fake_definition',
       'gfd.created_at as fake_created_at',
       
-      // Vote fields
       'gv.user_id as vote_user_id',
       'gv.definition_id as vote_definition_id',
       'gv.is_real_word as vote_is_real_word',
@@ -46,7 +42,6 @@ export default async function getWithCurrentRound(roomCode: string) {
     return null;
   }
 
-  // Agrupar resultado (como temos LEFT JOINs, pode haver múltiplas linhas)
   const firstRow = result[0];
   
   const session = {
@@ -56,7 +51,6 @@ export default async function getWithCurrentRound(roomCode: string) {
     created_at: firstRow.session_created_at,
   };
 
-  // Se não houver rodada atual, retornar só a session
   if (!firstRow.round_id) {
     return {
       session,
@@ -75,7 +69,6 @@ export default async function getWithCurrentRound(roomCode: string) {
     finished_at: firstRow.round_finished_at,
   };
 
-  // Agrupar fakes (remover duplicatas)
   const fakesMap = new Map();
   const votesMap = new Map();
 

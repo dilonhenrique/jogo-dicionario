@@ -20,7 +20,6 @@ export async function getVotes(roomCode: string): Promise<Map<string, string>> {
   
   const votesMap = new Map<string, string>();
   votes.forEach(v => {
-    // Se votou na palavra real, usar o word_id, senão usar definition_id
     votesMap.set(v.user_id, v.definition_id || round.word_id);
   });
 

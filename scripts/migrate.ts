@@ -1,3 +1,7 @@
+// Carregar .env APENAS para scripts de migration (não afeta Vercel)
+import dotenv from 'dotenv';
+dotenv.config();
+
 import fs from 'fs';
 import path from 'path';
 import { getDb } from '../src/infra/db';

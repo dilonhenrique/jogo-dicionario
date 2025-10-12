@@ -1,4 +1,5 @@
-#!/usr/bin/env tsx
+import dotenv from 'dotenv';
+dotenv.config();
 
 import { roomService } from '../src/server/services/room';
 

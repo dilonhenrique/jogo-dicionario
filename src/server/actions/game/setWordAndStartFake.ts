@@ -12,10 +12,8 @@ export async function setWordAndStartFake({
   roomCode: string;
   word: SimpleWord;
 }) {
-  // 1. Buscar número da próxima rodada
   const nextRoundNumber = await gameRoundRepo.getNextRoundNumber(roomCode);
 
-  // 2. Criar nova rodada
   const newRound = await gameRoundRepo.create({
     id: v4(),
     room_code: roomCode,
@@ -29,7 +27,6 @@ export async function setWordAndStartFake({
     throw new Error('Erro ao criar rodada');
   }
 
-  // 3. Atualizar sessão: rodada atual e stage
   await gameSessionRepo.updateStageAndRound(roomCode, 'fake', newRound.id);
 
   return { success: true, round: newRound };

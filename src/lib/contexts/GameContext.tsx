@@ -47,10 +47,8 @@ function GameProvider({ children, configs }: Props) {
     refetchAll,
   } = useGameSync(code);
 
-  // Converter Map para objeto somente leitura
   const votes: GameVotes = votesMap as GameVotes;
 
-  // Re-fetch quando houver mudanças no banco
   useEffect(() => {
     refetchAll();
   }, [onGameStateChange, refetchAll]);
@@ -78,7 +76,6 @@ function GameProvider({ children, configs }: Props) {
   }, [code, user.id]);
 
   const vote = useCallback(async (definitionId: string) => {
-    // Verificar se está votando na palavra real
     const isRealWord = currentRound?.word.id === definitionId;
     
     await gameActions.addVote({

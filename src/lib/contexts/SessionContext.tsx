@@ -33,7 +33,7 @@ function SessionProvider({ children }: PropsWithChildren) {
   }
 
   return (
-    // in most cases this will be called, user exists
+
     <SessionContext.Provider value={{ user: user!, setUser, updateUser, createUser }}>
       {children}
     </SessionContext.Provider>

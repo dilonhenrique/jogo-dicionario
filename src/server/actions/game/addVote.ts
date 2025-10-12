@@ -15,14 +15,12 @@ export async function addVote({
   definitionId: string | null;
   isRealWord: boolean;
 }) {
-  // 1. Buscar rodada atual
   const currentRoundId = await gameSessionRepo.getCurrentRoundId(roomCode);
 
   if (!currentRoundId) {
     throw new Error('Nenhuma rodada ativa');
   }
 
-  // 2. Inserir/atualizar voto
   await gameVoteRepo.create({
     round_id: currentRoundId,
     user_id: userId,
@@ -30,13 +28,11 @@ export async function addVote({
     is_real_word: isRealWord,
   });
 
-  // 3. Verificar se todos votaram
   const [players, votes] = await Promise.all([
     gamePlayerRepo.get(roomCode),
     gameVoteRepo.getByRound(currentRoundId),
   ]);
 
-  // 4. Se todos votaram, avançar para blame
   if (players.length > 0 && players.length === votes.length) {
     await gameSessionRepo.updateStage(roomCode, 'blame');
   }

@@ -80,7 +80,6 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     }
   }, [roomCode]);
 
-  // Fetch inicial
   useEffect(() => {
     refetchAll();
   }, [refetchAll]);

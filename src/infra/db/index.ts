@@ -2,13 +2,13 @@ import { Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
 import type { Database } from "./types";
 
-const connectionString = process.env.DATABASE_URL;
-
 let _db: Kysely<Database> | undefined;
 
 export function getDb(): Kysely<Database> {
   if (_db) return _db;
 
+  const connectionString = process.env.DATABASE_URL;
+  
   if (!connectionString) {
     throw new Error("Não tem env do banco");
   }
@@ -31,5 +31,21 @@ export async function destroyDb(): Promise<void> {
   }
 }
 
-const db = getDb();
+const db = new Proxy({} as Kysely<Database>, {
+  get(_target, prop) {
+    const instance = getDb();
+    const value = instance[prop as keyof Kysely<Database>];
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
+  has(_target, prop) {
+    return prop in getDb();
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getDb());
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    return Reflect.getOwnPropertyDescriptor(getDb(), prop);
+  }
+});
+
 export default db;

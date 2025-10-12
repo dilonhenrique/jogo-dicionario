@@ -14,7 +14,6 @@ export type GameStateData = {
 };
 
 export async function getState(roomCode: string): Promise<GameStateData> {
-  // 1. Buscar tudo em uma única query otimizada (session + round + fakes + votes)
   const [sessionData, playersData] = await Promise.all([
     gameSessionRepo.getWithCurrentRound(roomCode),
     gamePlayerRepo.get(roomCode),
@@ -32,7 +31,6 @@ export async function getState(roomCode: string): Promise<GameStateData> {
     onlineAt: null, // Será preenchido no contexto de Room
   }));
 
-  // 2. Montar currentRound se existir
   let currentRound: WordRound | null = null;
   const votesMap = new Map<string, string>();
 
@@ -55,7 +53,6 @@ export async function getState(roomCode: string): Promise<GameStateData> {
       })),
     };
 
-    // Montar mapa de votos
     votes.forEach(v => {
       votesMap.set(v.user_id, v.definition_id || round.word_id);
     });

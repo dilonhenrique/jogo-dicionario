@@ -9,7 +9,6 @@ export { restartGame } from "./restartGame";
 export { kickPlayer } from "./kickPlayer";
 export { joinGame } from "./joinGame";
 
-// Exportar como objeto também para conveniência
 import { changeStage } from "./changeStage";
 import { setWordAndStartFake } from "./setWordAndStartFake";
 import { addFakeDefinition } from "./addFakeDefinition";

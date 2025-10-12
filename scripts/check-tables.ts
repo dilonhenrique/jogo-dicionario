@@ -1,5 +1,9 @@
 #!/usr/bin/env tsx
 
+// Carregar .env APENAS para scripts de migration (não afeta Vercel)
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { getDb } from '../src/infra/db';
 import { sql } from 'kysely';
 
