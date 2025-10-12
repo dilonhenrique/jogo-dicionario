@@ -5,7 +5,6 @@ import { GameStage, WordRound } from "@/types/game";
 import { GamePlayer } from "@/types/user";
 import { gameService } from "@/server/services/game";
 import { calculateRoundPoints } from "@/lib/utils/calculateRoundPoints";
-import { serverLog } from "@/lib/utils/serverLog";
 
 export type UseGameSyncReturn = {
   stage: GameStage;
@@ -40,11 +39,11 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
     try {
       setIsLoading(true);
       const state = await gameService.getState(roomCode);
-      
+
       if (state === null) {
         return;
       }
-      
+
       setStage(state.stage);
       setPlayers(state.players);
       setCurrentRound(state.currentRound);
@@ -132,37 +131,31 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
   }, []);
 
   const updateCurrentRoundFromPayload = useCallback(() => {
-    // Para rounds, é mais complexo pois precisa das fakes
-    // Neste caso, melhor fazer refetch completo
     refetchCurrentRound();
   }, [refetchCurrentRound]);
 
   const updateVotesFromPayload = useCallback((voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => {
     const userId = voteData.user_id as string;
     const definitionId = voteData.definition_id as string | null;
-    
+
     setVotes(prev => {
       const newVotes = new Map(prev);
-      
+
       if (eventType === 'DELETE') {
         newVotes.delete(userId);
       } else {
-        // INSERT ou UPDATE
         if (definitionId) {
           newVotes.set(userId, definitionId);
         } else {
-          // Votou na palavra real - usa id da rodada atual
           const wordId = currentRound?.word?.id;
           if (wordId) {
             newVotes.set(userId, wordId);
           } else {
-            // Se não tiver rodada atual, não altera
-            serverLog("updateVotesFromPayload: No currentRound.word.id available");
             return prev;
           }
         }
       }
-      
+
       return newVotes;
     });
   }, [currentRound]);

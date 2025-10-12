@@ -22,8 +22,7 @@ export default function VoteStage() {
       currentRound.word,
       ...currentRound.fakes,
     ], "id");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentRound]);
 
   async function handleVote(defId: string, isSelected: boolean) {
     try {
@@ -37,7 +36,9 @@ export default function VoteStage() {
     }
   }
 
-  if (!currentRound) return <></>;
+  if (!currentRound || !currentRound.fakes || currentRound.fakes.length === 0) {
+    return <div className="text-center text-gray-500">Carregando definições...</div>;
+  }
 
   return (
     <>

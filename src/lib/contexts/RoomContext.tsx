@@ -9,7 +9,6 @@ import { Room } from "@/types/room";
 import { ConnectionStatus, GameConfig, GameStage } from "@/types/game";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/react";
-import { serverLog } from "../utils/serverLog";
 
 type RoomChannelContextValue = {
   code: string;
@@ -102,11 +101,14 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
         (payload) => {
-          // Tentar atualizar incrementalmente usando payload
           if (payload.eventType === 'UPDATE' && payload.new?.stage) {
-            updateStageRef.current?.(payload.new.stage as GameStage);
+            const newStage = payload.new.stage as GameStage;
+            updateStageRef.current?.(newStage);
+
+            if (newStage === 'vote' || newStage === 'blame') {
+              updateCurrentRoundRef.current?.();
+            }
           } else {
-            // Fallback: refetch completo
             refetchGameRef.current?.();
           }
           onGameStateChange();
@@ -116,11 +118,9 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_players', filter: `room_code=eq.${room.code}` },
         (payload) => {
-          // Atualizar jogador incrementalmente
           if ((payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') && payload.new) {
             updatePlayersRef.current?.(payload.new as Record<string, unknown>);
           } else {
-            // DELETE ou outro: refetch
             refetchGameRef.current?.();
           }
           onGameStateChange();
@@ -130,7 +130,6 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_rounds', filter: `room_code=eq.${room.code}` },
         () => {
-          // Rounds são complexos (precisam de fakes), sempre refetch
           updateCurrentRoundRef.current?.();
           onGameStateChange();
         }
@@ -139,7 +138,6 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_fake_definitions', filter: `room_code=eq.${room.code}` },
         () => {
-          // Fakes fazem parte do currentRound, refetch da rodada
           updateCurrentRoundRef.current?.();
           onGameStateChange();
         }
@@ -148,15 +146,11 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: '*', table: 'game_votes', filter: `room_code=eq.${room.code}` },
         (payload) => {
-          serverLog(">>> game_votes event:", payload);
-          
-          // DELETE usa payload.old, INSERT/UPDATE usa payload.new
           const voteData = payload.eventType === 'DELETE' ? payload.old : payload.new;
-          
+
           if (voteData) {
             updateVotesRef.current?.(voteData as Record<string, unknown>, payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE');
           } else {
-            // Fallback se não houver dados
             refetchGameRef.current?.();
           }
           onGameStateChange();

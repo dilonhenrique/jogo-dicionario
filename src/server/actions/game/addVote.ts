@@ -31,6 +31,7 @@ export async function addVote({
   ]);
 
   if (players.length > 0 && players.length === votes.length) {
+    await new Promise(resolve => setTimeout(resolve, 500));
     await gameSessionRepo.updateStage(roomCode, 'blame');
   }
 

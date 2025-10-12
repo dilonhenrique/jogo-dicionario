@@ -30,6 +30,7 @@ export async function addFakeDefinition({
   ]);
 
   if (players.length > 0 && players.length === fakes.length) {
+    await new Promise(resolve => setTimeout(resolve, 500));
     await gameSessionRepo.updateStage(roomCode, 'vote');
   }
 
