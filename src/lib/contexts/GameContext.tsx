@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect } from "react";
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo } from "react";
 import { GamePlayer } from "@/types/user";
 import { GameConfig, GameStage, GameVotes, SimpleWord, WordRound } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
@@ -36,10 +36,10 @@ type Props = PropsWithChildren & {
 
 function GameProvider({ children, configs }: Props) {
   const { user } = useSession();
-  const { code, onGameStateChange } = useRoomChannel();
+  const { code, onGameStateChange, onlinePlayers } = useRoomChannel();
   const {
     stage,
-    players,
+    players: gamePlayers,
     currentRound,
     roundHistory,
     votes: votesMap,
@@ -48,6 +48,17 @@ function GameProvider({ children, configs }: Props) {
   } = useGameSync(code);
 
   const votes: GameVotes = votesMap as GameVotes;
+
+  const players = useMemo(() => {
+    return gamePlayers.map(p => {
+      const onlinePlayer = onlinePlayers.find(op => op.id === p.id);
+      return {
+        ...p,
+        onlineAt: onlinePlayer?.onlineAt || null,
+        isHost: onlinePlayer?.isHost || false,
+      };
+    });
+  }, [gamePlayers, onlinePlayers]);
 
   useEffect(() => {
     refetchAll();

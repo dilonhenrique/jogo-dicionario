@@ -13,14 +13,14 @@ export type GameStateData = {
   votes: Map<string, string>;
 };
 
-export async function getState(roomCode: string): Promise<GameStateData> {
+export async function getState(roomCode: string): Promise<GameStateData | null> {
   const [sessionData, playersData] = await Promise.all([
     gameSessionRepo.getWithCurrentRound(roomCode),
     gamePlayerRepo.get(roomCode),
   ]);
 
   if (!sessionData) {
-    throw new Error("Sessão não encontrada");
+    return null;
   }
 
   const players: GamePlayer[] = playersData.map(p => ({

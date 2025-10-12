@@ -32,6 +32,10 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
       setIsLoading(true);
       const state = await gameService.getState(roomCode);
       
+      if (state === null) {
+        return;
+      }
+      
       setStage(state.stage);
       setPlayers(state.players);
       setCurrentRound(state.currentRound);
@@ -47,7 +51,9 @@ export function useGameSync(roomCode: string): UseGameSyncReturn {
   const refetchStage = useCallback(async () => {
     try {
       const state = await gameService.getState(roomCode);
-      setStage(state.stage);
+      if (state) {
+        setStage(state.stage);
+      }
     } catch (error) {
       console.error("Erro ao buscar stage:", error);
     }

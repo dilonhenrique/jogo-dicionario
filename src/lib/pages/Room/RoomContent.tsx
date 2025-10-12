@@ -8,7 +8,9 @@ import { useGameSync } from "@/lib/hooks/useGameSync";
 import { RoomComplete } from "@/types/room";
 import { Button, Spinner } from "@heroui/react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useIsClient } from "usehooks-ts";
+import { gameService } from "@/server/services/game";
 
 type Props = {
   room: RoomComplete;
@@ -19,10 +21,40 @@ export default function RoomContent({ room }: Props) {
   const isClient = useIsClient();
   const { refetchAll } = useGameSync(room.code);
 
-  const amIInThisGame = !room.session || room.session.players.some(u => u.id === user?.id);
+  const [isCheckingGame, setIsCheckingGame] = useState(true);
+  const [amIInThisGame, setAmIInThisGame] = useState(true);
 
-  if (!isClient) {
+  useEffect(() => {
+    const checkGameMembership = async () => {
+      if (!user) {
+        setIsCheckingGame(false);
+        return;
+      }
+
+      setIsCheckingGame(true);
+
+      try {
+        const players = await gameService.getPlayers(room.code);
+        if (players.length > 0) {
+          const isMember = players.some(p => p.id === user.id);
+          setAmIInThisGame(isMember);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar participação no jogo:", error);
+      } finally {
+        setIsCheckingGame(false);
+      }
+    };
+
+    checkGameMembership();
+  }, [room.code, user]);
+
+  if (!isClient || isCheckingGame) {
     return <Spinner size="sm" />;
+  }
+
+  if (user === null) {
+    return <LoginForm />;
   }
 
   if (!amIInThisGame) {
@@ -32,10 +64,6 @@ export default function RoomContent({ room }: Props) {
         <Button as={Link} href="/">Página inicial</Button>
       </>
     );
-  }
-
-  if (user === null) {
-    return <LoginForm />;
   }
 
   return (
