@@ -31,9 +31,10 @@ const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChan
 
 type Props = PropsWithChildren & {
   room: Room;
+  refetchGame?: () => void;
 };
 
-function RoomChannelProvider({ children, room }: Props) {
+function RoomChannelProvider({ children, room, refetchGame }: Props) {
   const { user } = useSession();
 
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
@@ -69,6 +70,7 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: 'UPDATE', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
         () => {
           serverLog('🔄 game_sessions atualizada');
+          refetchGame?.();
           onGameStateChange();
         }
       )
@@ -77,6 +79,7 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: '*', table: 'game_players', filter: `room_code=eq.${room.code}` },
         () => {
           serverLog('🔄 game_players atualizada');
+          refetchGame?.();
           onGameStateChange();
         }
       )
@@ -86,6 +89,7 @@ function RoomChannelProvider({ children, room }: Props) {
         (payload) => {
           if (payload.new && 'room_code' in payload.new && payload.new.room_code === room.code) {
             serverLog('🔄 game_rounds atualizada');
+            refetchGame?.();
             onGameStateChange();
           }
         }
@@ -95,7 +99,7 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: '*', table: 'game_fake_definitions' },
         () => {
           serverLog('🔄 game_fake_definitions atualizada');
-          onGameStateChange();
+          refetchGame?.();
         }
       )
       .on(
@@ -103,7 +107,7 @@ function RoomChannelProvider({ children, room }: Props) {
         { schema: 'public', event: '*', table: 'game_votes' },
         () => {
           serverLog('🔄 game_votes atualizada');
-          onGameStateChange();
+          refetchGame?.();
         }
       )
       .subscribe(async (status, err) => {
