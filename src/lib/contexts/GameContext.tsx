@@ -2,7 +2,7 @@
 
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { GameVotes, SimpleWord } from "@/types/game";
-import { useRoomChannel } from "./RoomContext";
+import { useRoomChannelComplete } from "./RoomContext";
 import { useSessionOptional } from "./SessionContext";
 import { useGameSync } from "../hooks/useGameSync";
 import { gameActions } from "@/server/actions/game";
@@ -18,9 +18,6 @@ function GameProvider({ children, roomCode }: Props) {
   const { user: sessionUser } = useSessionOptional();
   const user = sessionUser!;
 
-  const roomChannel = useRoomChannel();
-  const [isActive, setIsActive] = useState(false);
-
   const {
     onlinePlayers,
     configs,
@@ -29,9 +26,10 @@ function GameProvider({ children, roomCode }: Props) {
     setUpdatePlayers,
     setUpdateCurrentRound,
     setUpdateVotes,
-    setStartGame: setActivateGame,
+    setStartGame,
     lastEventTime,
-  } = roomChannel;
+  } = useRoomChannelComplete();
+  const [isActive, setIsActive] = useState(false);
 
   const {
     stage,
@@ -56,8 +54,8 @@ function GameProvider({ children, roomCode }: Props) {
   }, []);
 
   useEffect(() => {
-    setActivateGame(start);
-  }, [start, setActivateGame]);
+    setStartGame(start);
+  }, [start, setStartGame]);
 
   const players = useMemo(() => {
     if (!isActive) return [];
@@ -236,17 +234,15 @@ function GameProvider({ children, roomCode }: Props) {
   </GameContext.Provider>)
 }
 
-// Hook seguro - pode retornar null
 function useGameSafe() {
   return useContext(GameContext);
 }
 
-// Hook que garante contexto - throw error se não existir
 function useGame() {
   const context = useContext(GameContext);
 
   if (!context.hasStarted) {
-    throw new Error('useGameContext must be used within active GameProvider');
+    throw new Error('useGame must be used within active GameProvider');
   }
 
   return context;

@@ -3,36 +3,19 @@
 import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
-import { Player, RoomUser } from "@/types/user";
+import { RoomUser } from "@/types/user";
 import { RoomComplete } from "@/types/room";
 import { GameConfig, GameStage } from "@/types/game";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/react";
 import { useSessionOptional } from "./SessionContext";
-
-type RoomChannelContextValue = {
-  code: string;
-  hostId: string;
-  channel: RealtimeChannel | null;
-  onlinePlayers: Player[];
-  amIHost: boolean;
-  amIConnected: boolean;
-  configs: GameConfig;
-  lastEventTime: number;
-  setRefetchGame: (fn: () => void) => void;
-  setUpdateStage: (fn: (stage: GameStage) => void) => void;
-  setUpdatePlayers: (fn: (playerData: Record<string, unknown>) => void) => void;
-  setUpdateCurrentRound: (fn: () => void) => void;
-  setUpdateVotes: (fn: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) => void;
-  setStartGame: (fn: () => void) => void;
-  kickPlayer: (playerId: string) => void;
-};
+import { RoomChannelContextValue, RoomChannelContextValueComplete } from "./RoomContext.types";
 
 function lastMeta(arr: RoomUser[]) {
   return arr[arr.length - 1];
 }
 
-const RoomChannelContext = createContext<RoomChannelContextValue | null>(null);
+const RoomChannelContext = createContext<RoomChannelContextValueComplete | null>(null);
 
 type Props = PropsWithChildren & {
   room: RoomComplete;
@@ -244,18 +227,24 @@ function RoomChannelProvider({ children, room }: Props) {
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;
 }
 
-// Hook seguro - pode retornar null
-function useRoomChannelSafe() {
+function useRoomChannelSafe(): RoomChannelContextValue | null {
   return useContext(RoomChannelContext);
 }
 
-// Hook que garante contexto - throw error se não existir
-function useRoomChannel() {
+function useRoomChannel(): RoomChannelContextValue {
   const context = useContext(RoomChannelContext);
   if (!context) {
-    throw new Error('useRoomChannelContext must be used within RoomChannelProvider');
+    throw new Error('useRoomChannel must be used within RoomChannelProvider');
   }
   return context;
 }
 
-export { RoomChannelProvider, useRoomChannelSafe, useRoomChannel };
+function useRoomChannelComplete(): RoomChannelContextValueComplete {
+  const context = useContext(RoomChannelContext);
+  if (!context) {
+    throw new Error('useRoomChannelComplete must be used within RoomChannelProvider');
+  }
+  return context;
+}
+
+export { RoomChannelProvider, useRoomChannelSafe, useRoomChannel, useRoomChannelComplete };
