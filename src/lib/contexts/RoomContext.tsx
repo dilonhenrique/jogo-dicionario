@@ -4,29 +4,27 @@ import { createContext, PropsWithChildren, useCallback, useContext, useEffect, u
 import { roomService } from "@/server/services/room";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { Player, RoomUser } from "@/types/user";
-import { useSession } from "./SessionContext";
 import { RoomComplete } from "@/types/room";
-import { ConnectionStatus, GameConfig, GameStage } from "@/types/game";
+import { GameConfig, GameStage } from "@/types/game";
 import { useRouter } from "next/navigation";
 import { addToast } from "@heroui/react";
+import { useSessionOptional } from "./SessionContext";
 
 type RoomChannelContextValue = {
   code: string;
   hostId: string;
-  channel: RealtimeChannel;
+  channel: RealtimeChannel | null;
   onlinePlayers: Player[];
-  gameHasStarted: boolean;
   amIHost: boolean;
   amIConnected: boolean;
   configs: GameConfig;
-  connectionStatus: ConnectionStatus;
   lastEventTime: number;
-  startGame: () => void;
   setRefetchGame: (fn: () => void) => void;
   setUpdateStage: (fn: (stage: GameStage) => void) => void;
   setUpdatePlayers: (fn: (playerData: Record<string, unknown>) => void) => void;
   setUpdateCurrentRound: (fn: () => void) => void;
   setUpdateVotes: (fn: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) => void;
+  setActivateGame: (fn: () => void) => void;
   kickPlayer: (playerId: string) => void;
 };
 
@@ -34,21 +32,19 @@ function lastMeta(arr: RoomUser[]) {
   return arr[arr.length - 1];
 }
 
-const RoomChannelContext = createContext<RoomChannelContextValue>({} as RoomChannelContextValue);
+const RoomChannelContext = createContext<RoomChannelContextValue | null>(null);
 
 type Props = PropsWithChildren & {
   room: RoomComplete;
 };
 
 function RoomChannelProvider({ children, room }: Props) {
-  const { user } = useSession();
   const router = useRouter();
+  const { user } = useSessionOptional();
 
   const [channel, setChannel] = useState<RealtimeChannel | null>(null);
   const [hostId, setHostId] = useState(room.host.id);
-  const [users, setUsers] = useState<RoomUser[]>([]);
-  const [gameHasStarted, setGameStarted] = useState(!!room.session);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connected');
+  const [onlinePlayers, setOnlinePlayers] = useState<RoomUser[]>([]);
   const [lastEventTime, setLastEventTime] = useState(Date.now());
 
   const refetchGameRef = useRef<(() => void) | null>(null);
@@ -56,22 +52,29 @@ function RoomChannelProvider({ children, room }: Props) {
   const updatePlayersRef = useRef<((playerData: Record<string, unknown>) => void) | null>(null);
   const updateCurrentRoundRef = useRef<(() => void) | null>(null);
   const updateVotesRef = useRef<((voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) | null>(null);
+  const activateGameRef = useRef<(() => void) | null>(null);
 
   const configs = room.configs as GameConfig;
-  const amIConnected = users.some(u => u.id === user.id);
+  const amIConnected = user ? onlinePlayers.some(u => u.id === user.id) : false;
+  const canIJoinTheRoom = !room.session || room.session.players.some(p => p.id === user?.id);
 
   const onGameStateChange = useCallback(() => {
     setLastEventTime(Date.now());
   }, []);
 
   useEffect(() => {
+    // Conecta automaticamente caso:
+    // - O usuário esteja logado; E
+    // - O jogo ainda ainda não começou ou ele já esteja participando do jogo
+    if (!user || !canIJoinTheRoom) return;
+
     const roomChannel = roomService.joinRoomChannel({ code: room.code, user });
 
     roomChannel
       .on("presence", { event: "sync" }, async () => {
         const raw = roomChannel.presenceState() as Record<string, RoomUser[]>;
         const players = Object.values(raw).map(lastMeta);
-        setUsers(players);
+        setOnlinePlayers(players);
       })
       .on("broadcast", { event: "kick" }, ({ payload }) => {
         if (payload.userId === user.id) {
@@ -91,9 +94,10 @@ function RoomChannelProvider({ children, room }: Props) {
       )
       .on(
         "postgres_changes",
-        { schema: 'public', event: '*', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
+        { schema: 'public', event: 'INSERT', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
         () => {
-          refetchGameRef.current?.();
+          // Quando uma sessão de jogo é criada, ativa o GameContext
+          activateGameRef.current?.();
           onGameStateChange();
         }
       )
@@ -158,18 +162,18 @@ function RoomChannelProvider({ children, room }: Props) {
       )
       .subscribe(async (status, err) => {
         if (err) {
-          setConnectionStatus('disconnected');
+          // setConnectionStatus('disconnected');
           return;
         }
 
         if (status === "SUBSCRIBED") {
-          setConnectionStatus('connected');
+          // setConnectionStatus('connected');
           await roomChannel.track({
             ...user,
             onlineAt: new Date().toISOString(),
           });
         } else if (["CHANNEL_ERROR", "TIMED_OUT", "CLOSED"].includes(status)) {
-          setConnectionStatus('disconnected');
+          // setConnectionStatus('disconnected');
         }
       });
 
@@ -179,41 +183,11 @@ function RoomChannelProvider({ children, room }: Props) {
     return () => {
       roomChannel?.unsubscribe();
     };
-  }, [room.code, user, onGameStateChange, router]);
+  }, [room.code, user, onGameStateChange, router, canIJoinTheRoom]);
 
-  useEffect(() => {
-    if (!gameHasStarted) return;
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refetchGameRef.current?.();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [gameHasStarted]);
-
-  useEffect(() => {
-    if (!gameHasStarted) return;
-
-    const pollInterval = setInterval(() => {
-      const timeSinceLastEvent = Date.now() - lastEventTime;
-
-      if (timeSinceLastEvent > 10000 && !document.hidden) {
-        refetchGameRef.current?.();
-      }
-    }, 5000);
-
-    return () => clearInterval(pollInterval);
-  }, [gameHasStarted, lastEventTime]);
-
-  const startGame = () => {
-    setGameStarted(true);
-  };
+  const setActivateGameCallback = useCallback((fn: () => void) => {
+    activateGameRef.current = fn;
+  }, []);
 
   const setRefetchGameCallback = useCallback((fn: () => void) => {
     refetchGameRef.current = fn;
@@ -236,7 +210,7 @@ function RoomChannelProvider({ children, room }: Props) {
   }, []);
 
   const kickPlayer = useCallback((playerId: string) => {
-    if (!channel || user.id !== hostId) {
+    if (!channel || !user || user.id !== hostId) {
       return;
     }
 
@@ -245,36 +219,44 @@ function RoomChannelProvider({ children, room }: Props) {
       event: "kick",
       payload: { userId: playerId },
     });
-  }, [channel, user.id, hostId]);
+  }, [channel, user, hostId]);
 
   const value = useMemo(
     () => ({
       code: room.code,
       hostId,
-      channel: channel!,
-      onlinePlayers: users.map(u => ({ ...u, isHost: u.id === hostId })),
-      gameHasStarted,
-      amIHost: user.id === hostId,
+      channel,
+      onlinePlayers: onlinePlayers.map(u => ({ ...u, isHost: u.id === hostId })),
+      amIHost: user ? user.id === hostId : false,
       amIConnected,
       configs,
-      connectionStatus,
       lastEventTime,
-      startGame,
       setRefetchGame: setRefetchGameCallback,
       setUpdateStage: setUpdateStageCallback,
       setUpdatePlayers: setUpdatePlayersCallback,
       setUpdateCurrentRound: setUpdateCurrentRoundCallback,
       setUpdateVotes: setUpdateVotesCallback,
+      setActivateGame: setActivateGameCallback,
       kickPlayer,
     }),
-    [room.code, hostId, channel, users, gameHasStarted, user.id, amIConnected, configs, connectionStatus, lastEventTime, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, kickPlayer]
+    [room.code, hostId, channel, onlinePlayers, user, amIConnected, configs, lastEventTime, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, setActivateGameCallback, kickPlayer]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;
 }
 
-function useRoomChannel() {
+// Hook seguro - pode retornar null
+function useRoomChannelSafe() {
   return useContext(RoomChannelContext);
 }
 
-export { RoomChannelProvider, useRoomChannel };
+// Hook que garante contexto - throw error se não existir
+function useRoomChannel() {
+  const context = useContext(RoomChannelContext);
+  if (!context) {
+    throw new Error('useRoomChannelContext must be used within RoomChannelProvider');
+  }
+  return context;
+}
+
+export { RoomChannelProvider, useRoomChannelSafe, useRoomChannel };

@@ -13,7 +13,11 @@ type SessionContextValue = {
   createUser: (user: Omit<User, "id">) => User;
 };
 
-const SessionContext = createContext<SessionContextValue>({} as SessionContextValue);
+type SessionContextValueOptional = Omit<SessionContextValue, 'user'> & {
+  user: User | null;
+}
+
+const SessionContext = createContext<SessionContextValueOptional>({} as SessionContextValueOptional);
 
 function SessionProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useCookieState<User | null>('LOCAL_USER', null);
@@ -34,14 +38,24 @@ function SessionProvider({ children }: PropsWithChildren) {
 
   return (
 
-    <SessionContext.Provider value={{ user: user!, setUser, updateUser, createUser }}>
+    <SessionContext.Provider value={{ user: user, setUser, updateUser, createUser }}>
       {children}
     </SessionContext.Provider>
   );
 }
 
-function useSession() {
+function useSessionOptional() {
   return useContext(SessionContext);
 }
 
-export { SessionProvider, useSession };
+function useSession() {
+  const context = useContext(SessionContext);
+
+  if (!context.user) {
+    throw new Error("useSession must be used within a SessionProvider and with a valid user.");
+  }
+
+  return context as SessionContextValue;
+}
+
+export { SessionProvider, useSession, useSessionOptional };

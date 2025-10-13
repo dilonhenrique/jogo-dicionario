@@ -1,52 +1,38 @@
 "use client";
 
-import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo } from "react";
-import { GamePlayer } from "@/types/user";
-import { GameConfig, GameStage, GameVotes, SimpleWord, WordRound } from "@/types/game";
+import { createContext, PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { GameVotes, SimpleWord } from "@/types/game";
 import { useRoomChannel } from "./RoomContext";
-import { useSession } from "./SessionContext";
+import { useSessionOptional } from "./SessionContext";
 import { useGameSync } from "../hooks/useGameSync";
 import { gameActions } from "@/server/actions/game";
-
-type GameContextValue = {
-  stage: GameStage;
-  players: GamePlayer[];
-  votes: GameVotes;
-  configs: GameConfig;
-  currentRound: WordRound | null;
-  roundHistory: WordRound[];
-  currentRoundPoints: Map<string, number>;
-  isLoading: boolean;
-  refetchAll: () => Promise<void>;
-  actions: {
-    setWordAndStartFakeStage: (word: SimpleWord) => Promise<void>;
-    addFakeWord: (definition: string) => Promise<void>;
-    removeFakeWord: () => Promise<void>;
-    vote: (definitionId: string) => Promise<void>;
-    removeVote: () => Promise<void>;
-    checkoutCurrentRound: () => Promise<void>;
-    restartGame: () => Promise<void>;
-    kickPlayer: (userId: string) => Promise<void>;
-  }
-}
+import { GameContextValue } from "./GameContext.types";
 
 const GameContext = createContext<GameContextValue>({} as GameContextValue);
 
 type Props = PropsWithChildren & {
-  configs: GameConfig;
+  roomCode: string;
 }
 
-function GameProvider({ children, configs }: Props) {
-  const { user } = useSession();
-  const { 
-    code, 
-    onlinePlayers, 
+function GameProvider({ children, roomCode }: Props) {
+  const { user: sessionUser } = useSessionOptional();
+  const user = sessionUser!;
+
+  const roomChannel = useRoomChannel();
+  const [isActive, setIsActive] = useState(false);
+
+  const {
+    onlinePlayers,
+    configs,
     setRefetchGame,
     setUpdateStage,
     setUpdatePlayers,
     setUpdateCurrentRound,
     setUpdateVotes,
-  } = useRoomChannel();
+    setActivateGame,
+    lastEventTime,
+  } = roomChannel;
+
   const {
     stage,
     players: gamePlayers,
@@ -61,11 +47,20 @@ function GameProvider({ children, configs }: Props) {
     updatePlayersFromPayload,
     updateCurrentRoundFromPayload,
     updateVotesFromPayload,
-  } = useGameSync(code);
+  } = useGameSync(roomCode);
 
   const votes: GameVotes = votesMap as GameVotes;
 
+  const start = useCallback(() => {
+    setIsActive(true);
+  }, []);
+
+  useEffect(() => {
+    setActivateGame(start);
+  }, [start, setActivateGame]);
+
   const players = useMemo(() => {
+    if (!isActive) return [];
     return gamePlayers.map(p => {
       const onlinePlayer = onlinePlayers.find(op => op.id === p.id);
       return {
@@ -74,103 +69,137 @@ function GameProvider({ children, configs }: Props) {
         isHost: onlinePlayer?.isHost || false,
       };
     });
-  }, [gamePlayers, onlinePlayers]);
+  }, [gamePlayers, onlinePlayers, isActive]);
 
   useEffect(() => {
+    if (!isActive) return;
     setRefetchGame(refetchAll);
-  }, [refetchAll, setRefetchGame]);
+  }, [refetchAll, setRefetchGame, isActive]);
 
   useEffect(() => {
+    if (!isActive) return;
     setUpdateStage(updateStageFromPayload);
     setUpdatePlayers(updatePlayersFromPayload);
     setUpdateCurrentRound(updateCurrentRoundFromPayload);
     setUpdateVotes(updateVotesFromPayload);
-  }, [setUpdateStage, setUpdatePlayers, setUpdateCurrentRound, setUpdateVotes, updateStageFromPayload, updatePlayersFromPayload, updateCurrentRoundFromPayload, updateVotesFromPayload]);
+  }, [setUpdateStage, setUpdatePlayers, setUpdateCurrentRound, setUpdateVotes, updateStageFromPayload, updatePlayersFromPayload, updateCurrentRoundFromPayload, updateVotesFromPayload, isActive]);
 
   useEffect(() => {
+    if (!isActive) return;
     if (stage === 'blame') {
       refetchCurrentRoundPoints();
     }
-  }, [stage, refetchCurrentRoundPoints]);
+  }, [stage, refetchCurrentRoundPoints, isActive]);
+
+  // Polling e visibility change para refetch
+  useEffect(() => {
+    if (!isActive) return;
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refetchAll();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isActive, refetchAll]);
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    const pollInterval = setInterval(() => {
+      const timeSinceLastEvent = Date.now() - lastEventTime;
+
+      if (timeSinceLastEvent > 10000 && !document.hidden) {
+        refetchAll();
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [isActive, lastEventTime, refetchAll]);
 
   const setWordAndStartFakeStage = useCallback(async (word: SimpleWord) => {
     await gameActions.setWordAndStartFake({
-      roomCode: code,
+      roomCode,
       word,
     });
-  }, [code]);
+  }, [roomCode]);
 
   const addFakeWord = useCallback(async (definition: string) => {
     if (!currentRound?.id) {
       throw new Error('Nenhuma rodada ativa');
     }
-    
+
     await gameActions.addFakeDefinition({
       currentRoundId: currentRound.id,
-      roomCode: code,
+      roomCode,
       userId: user.id,
       definition,
     });
-  }, [code, user.id, currentRound]);
+  }, [roomCode, user?.id, currentRound]);
 
   const removeFakeWord = useCallback(async () => {
     if (!currentRound?.id) {
       throw new Error('Nenhuma rodada ativa');
     }
-    
+
     await gameActions.removeFakeDefinition({
       currentRoundId: currentRound.id,
-      userId: user.id,
+      userId: user?.id,
     });
-  }, [user.id, currentRound]);
+  }, [user?.id, currentRound]);
 
   const vote = useCallback(async (definitionId: string) => {
     if (!currentRound?.id) {
       throw new Error('Nenhuma rodada ativa');
     }
-    
+
     const isRealWord = currentRound.word.id === definitionId;
-    
+
     await gameActions.addVote({
       currentRoundId: currentRound.id,
-      roomCode: code,
-      userId: user.id,
+      roomCode,
+      userId: user?.id,
       definitionId: isRealWord ? null : definitionId,
       isRealWord,
     });
-  }, [code, user.id, currentRound]);
+  }, [roomCode, user?.id, currentRound]);
 
   const removeVote = useCallback(async () => {
     if (!currentRound?.id) {
       throw new Error('Nenhuma rodada ativa');
     }
-    
+
     await gameActions.removeVote({
       currentRoundId: currentRound.id,
-      userId: user.id,
+      userId: user?.id,
     });
-  }, [user.id, currentRound]);
+  }, [user?.id, currentRound]);
 
   const checkoutCurrentRound = useCallback(async () => {
     await gameActions.checkoutRound({
-      roomCode: code,
+      roomCode,
       configs,
     });
-  }, [code, configs]);
+  }, [roomCode, configs]);
 
   const restartGameAction = useCallback(async () => {
     await gameActions.restartGame({
-      roomCode: code,
+      roomCode,
       configs,
     });
-  }, [code, configs]);
+  }, [roomCode, configs]);
 
   const kickPlayerAction = useCallback(async (userId: string) => {
     await gameActions.kickPlayer({
-      roomCode: code,
+      roomCode,
       userId,
     });
-  }, [code]);
+  }, [roomCode]);
 
   const actions = {
     setWordAndStartFakeStage,
@@ -184,25 +213,43 @@ function GameProvider({ children, configs }: Props) {
   }
 
   return (<GameContext.Provider
-    value={{
-      stage,
-      players,
-      votes,
-      currentRound,
-      roundHistory,
-      currentRoundPoints,
-      configs,
-      isLoading,
-      refetchAll,
-      actions,
-    }}
+    value={
+      isActive ? {
+        hasStarted: true,
+        stage,
+        players,
+        votes,
+        currentRound,
+        roundHistory,
+        currentRoundPoints,
+        configs,
+        isLoading,
+        refetchAll,
+        actions,
+      } : {
+        hasStarted: false,
+        start,
+      }
+    }
   >
     {children}
   </GameContext.Provider>)
 }
 
-function useGame() {
+// Hook seguro - pode retornar null
+function useGameSafe() {
   return useContext(GameContext);
 }
 
-export { GameProvider, useGame }
+// Hook que garante contexto - throw error se não existir
+function useGame() {
+  const context = useContext(GameContext);
+
+  if (!context.hasStarted) {
+    throw new Error('useGameContext must be used within active GameProvider');
+  }
+
+  return context;
+}
+
+export { GameProvider, useGameSafe, useGame }

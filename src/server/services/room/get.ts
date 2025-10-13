@@ -2,12 +2,15 @@
 
 import { roomRepo } from "@/server/repositories/room";
 import { RoomComplete } from "@/types/room";
-import { GameConfig, GameState } from "@/types/game";
+import { GameConfig } from "@/types/game";
+import { roomCompleteToGameState } from "./mappers/roomCompleteToGameState";
 
 export default async function get(code: string): Promise<RoomComplete | null> {
   const room = await roomRepo.get(code);
 
   if (!room) return null;
+
+  const session = roomCompleteToGameState(room);
 
   return {
     code: room.code,
@@ -18,6 +21,6 @@ export default async function get(code: string): Promise<RoomComplete | null> {
     configs: room.configs as GameConfig,
     createdAt: room.created_at,
     expiresAt: room.expires_at,
-    session: room.game_state as GameState | undefined,
+    session,
   };
 }

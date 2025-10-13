@@ -137,7 +137,13 @@ export type Room = Selectable<RoomsTable>;
 export type NewRoom = Insertable<RoomsTable>;
 export type UpdateRoom = Updateable<RoomsTable>;
 
-export type RoomComplete = Room & { game_state?: GameSession["game_state"] };
+export type RoomComplete = Room & { 
+  game_session?: GameSession | null;
+  game_players?: GamePlayer[];
+  current_round?: GameRound | null;
+  game_votes?: GameVote[];
+  game_fake_definitions?: GameFakeDefinition[];
+};
 
 export type WordVote = Selectable<WordVotesTable>;
 export type NewWordVote = Insertable<WordVotesTable>;

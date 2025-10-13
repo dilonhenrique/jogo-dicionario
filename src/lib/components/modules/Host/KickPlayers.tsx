@@ -1,14 +1,18 @@
 import { useSession } from "@/lib/contexts/SessionContext";
 import { PlayerList } from "../Player/PlayerList";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
-import { useGame } from "@/lib/contexts/GameContext";
+import { useGameSafe } from "@/lib/contexts/GameContext";
 import { Player } from "@/types/user";
 import { addToast } from "@heroui/react";
 
 export default function KickPlayers() {
   const { user } = useSession();
   const { amIHost, kickPlayer } = useRoomChannel();
-  const { players, actions } = useGame();
+  const game = useGameSafe();
+
+  if (!game.hasStarted) return null;
+
+  const { players, actions } = game;
 
   async function handleRemovePlayer(player?: Player) {
     if (!player?.id) return;

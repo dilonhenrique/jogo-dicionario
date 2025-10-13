@@ -1,58 +1,38 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import InGame from "../InGame/InGame";
-import { GameProvider } from "@/lib/contexts/GameContext";
+import { useGameSafe } from "@/lib/contexts/GameContext";
 import { useEffect } from "react";
-import { dictionaryService } from "@/server/services/dictionary";
 import RoomPreview from "./RoomPreview";
 import { gameSessionService } from "@/server/services/gameSession";
-import { gameActions } from "@/server/actions/game";
 import { addToast } from "@heroui/react";
 import { useIsClient } from "usehooks-ts";
 import { Crown } from "lucide-react";
 
 export default function Room() {
-  const { gameHasStarted, startGame, code, configs, onlinePlayers, amIHost } = useRoomChannel();
+  const { code, configs, onlinePlayers, amIHost, amIConnected } = useRoomChannel();
+  const game = useGameSafe();
   const isClient = useIsClient();
 
   async function hostStartNewGame() {
-    const hostChooseWord = configs.enableHostChooseWord === true;
+    if (game.hasStarted) return;
 
     await gameSessionService.create({
       roomCode: code,
-      initialState: {
-        players: [],
-        stage: hostChooseWord ? "word_pick" : "fake",
-        currentRound: null,
-        roundHistory: [],
-        votes: [],
-      }
+      players: onlinePlayers.map(p => ({ id: p.id, name: p.name })),
+      hostChooseWord: configs.enableHostChooseWord === true,
     });
 
-    for (const player of onlinePlayers) {
-      await gameActions.joinGame({
-        roomCode: code,
-        userId: player.id,
-        userName: player.name,
-      });
-    }
-
-    if (!hostChooseWord) {
-      const [word] = await dictionaryService.getNewRandomWord();
-      await gameActions.setWordAndStartFake({
-        roomCode: code,
-        word,
-      });
-    }
-
-    startGame();
+    game.start();
   }
 
   useEffect(() => {
     const loadGameSession = async () => {
+      if (game.hasStarted) return;
+
       try {
         const session = await gameSessionService.get(code);
         if (session) {
-          startGame();
+          game.start();
         }
       } catch (error) {
         console.error("Erro ao carregar sessão de jogo:", error);
@@ -61,7 +41,7 @@ export default function Room() {
 
     loadGameSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [code]);
+  }, [code, amIConnected]);
 
   useEffect(() => {
     if (isClient && amIHost) {
@@ -75,12 +55,8 @@ export default function Room() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amIHost])
 
-  if (gameHasStarted) {
-    return (
-      <GameProvider configs={configs}>
-        <InGame />
-      </GameProvider>
-    );
+  if (game.hasStarted) {
+    return <InGame />;
   }
 
   return <RoomPreview onStartGame={hostStartNewGame} />;

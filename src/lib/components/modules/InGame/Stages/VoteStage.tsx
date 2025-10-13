@@ -1,5 +1,5 @@
 import { sortBy } from "lodash";
-import { useGame } from "@/lib/contexts/GameContext"
+import { useGame } from "@/lib/contexts/GameContext";
 import { Button } from "@heroui/react";
 import { useMemo } from "react";
 import CardCheckbox from "@/lib/components/ui/CardCheckbox/CardCheckbox";

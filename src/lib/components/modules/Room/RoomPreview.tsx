@@ -1,8 +1,6 @@
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { Spinner, Button, addToast } from "@heroui/react";
 import { PlayerList } from "../Player/PlayerList";
-import HostControlButton from "../Host/HostControlButton";
-import HeaderContainer from "../../ui/HeaderContainer/HeaderContainer";
 import CopyButton from "../../ui/CopyButton/CopyButton";
 import { useIsClient } from "usehooks-ts";
 import { useMemo } from "react";
@@ -45,12 +43,6 @@ export default function RoomPreview({ onStartGame }: Props) {
 
       {amIConnected && (
         <>
-          {amIHost && (
-            <HeaderContainer>
-              <HostControlButton />
-            </HeaderContainer>
-          )}
-
           {amIHost && (
             <div className="border border-foreground-100 p-4 rounded-xl flex flex-col gap-2 items-start">
               <h4 className="flex gap-2 items-center">

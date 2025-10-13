@@ -1,4 +1,4 @@
-import { useGame } from "@/lib/contexts/GameContext"
+import { useGame } from "@/lib/contexts/GameContext";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import useFirstRender from "@/lib/hooks/useFirstRender";
 import { dictionaryService } from "@/server/services/dictionary";
