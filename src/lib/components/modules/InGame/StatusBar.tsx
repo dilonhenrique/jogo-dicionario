@@ -1,4 +1,4 @@
-import { useGame } from "@/lib/contexts/GameContext";
+import { useGameSafe } from "@/lib/contexts/GameContext";
 import { Progress } from "@heroui/react";
 import { useMemo } from "react";
 
@@ -10,48 +10,50 @@ type GameStatus = {
 }
 
 export default function StatusBar() {
-  const { stage, players, currentRound, votes } = useGame();
+  const game = useGameSafe();
 
-  const { percentage, label }: GameStatus = useMemo(() => {
-    switch (stage) {
+  const status: GameStatus | null = useMemo(() => {
+    if (!game.hasStarted) return null;
+
+    switch (game.stage) {
       case "word_pick":
         return { status: "waiting-word", label: "Aguardando palavra..." };
 
       case "fake":
         {
-          const totalAnswered = players.map(p => currentRound?.fakes
+          const totalAnswered = game.players.map(p => game.currentRound?.fakes
             .some(f => f.author.id === p.id) ?? false)
             .filter(Boolean).length;
 
-          const percentage = (totalAnswered / players.length) * 100;
-          return { status: "faking", percentage, label: `Respostas enviadas: ${totalAnswered}/${players.length}` };
+          const percentage = (totalAnswered / game.players.length) * 100;
+          return { status: "faking", percentage, label: `Respostas enviadas: ${totalAnswered}/${game.players.length}` };
         }
 
       case "vote":
         {
-          const totalVotes = players.map(p => votes.has(p.id)).filter(Boolean).length;
-          const percentage = (totalVotes / players.length) * 100;
-          return { status: "voting", percentage, label: `Votos: ${totalVotes}/${players.length}` };
+          const totalVotes = game.players.map(p => game.votes.has(p.id)).filter(Boolean).length;
+          const percentage = (totalVotes / game.players.length) * 100;
+          return { status: "voting", percentage, label: `Votos: ${totalVotes}/${game.players.length}` };
         }
 
       case "blame":
       case "finishing":
         return { status: "blame", label: "Aguardando próxima rodada..." };
     }
-  }, [currentRound, players, stage, votes]);
+  }, [game]);
 
-  const isIndeterminate = percentage === undefined;
+  if (!game.hasStarted || !status || game.stage === "finishing") return null;
 
-  if (stage === "finishing") return null;
+  const isIndeterminate = status?.percentage === undefined;
 
   return (
-    <div className="fixed bottom-0 w-full max-w-2xl p-10 pt-0 -ms-10">
-      <div className="border border-foreground-200 bg-foreground-50 p-6 rounded-xl text-center relative overflow-hidden">
-        <h6 className="text-foreground-600">{label}</h6>
+    <div className="px-10">
+      <div className="relative border border-foreground-200 bg-foreground-50 p-6 rounded-xl text-center overflow-hidden -mt-5">
+        <h6 className="text-foreground-600">{status.label}</h6>
 
         <Progress
           size="sm"
-          value={percentage}
+          value={status.percentage}
           isIndeterminate={isIndeterminate}
           maxValue={100}
           color={isIndeterminate ? "default" : "success"}

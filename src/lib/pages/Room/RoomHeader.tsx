@@ -19,7 +19,8 @@ export default function RoomHeader() {
   const showPlayersDrawer = roomChannel?.amIConnected && game?.hasStarted;
 
   return (
-    <header className="flex gap-2 pb-4 items-end justify-content-between border-b border-foreground-200">
+    <div className="px-10">
+    <header className="flex gap-2 pb-5 items-end justify-content-between border-b border-foreground-200 h-12">
       <h1 className="!text-large text-primary">Sala #{roomCode}</h1>
 
       <div className="flex justify-end items-center gap-2 grow">
@@ -32,5 +33,6 @@ export default function RoomHeader() {
         }
       </div>
     </header>
+    </div>
   );
 }

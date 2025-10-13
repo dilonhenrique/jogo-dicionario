@@ -58,7 +58,7 @@ export default function VoteStage() {
       {showBlame && amIHost && (
         <Button
           color="primary"
-          className="mt-auto self-center"
+          className="self-center shrink-0"
           onPress={async () => {
             try {
               await actions.checkoutCurrentRound();

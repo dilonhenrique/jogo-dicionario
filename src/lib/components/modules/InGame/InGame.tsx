@@ -2,7 +2,6 @@ import { useGame } from "@/lib/contexts/GameContext"
 import FakeStage from "./Stages/FakeStage";
 import WordSelector from "./Stages/WordSelector";
 import VoteStage from "./Stages/VoteStage";
-import StatusBar from "./StatusBar";
 import { useRoomChannel } from "@/lib/contexts/RoomContext";
 import { useSession } from "@/lib/contexts/SessionContext";
 import FinishStage from "./Stages/FinishStage";
@@ -29,8 +28,6 @@ export default function InGame() {
       {stage === "fake" && <FakeStage />}
       {["vote", "blame"].includes(stage) && <VoteStage />}
       {stage === "finishing" && <FinishStage />}
-
-      <StatusBar />
     </>
   )
 }
