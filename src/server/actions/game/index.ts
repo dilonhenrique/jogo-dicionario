@@ -19,6 +19,7 @@ import { checkoutRound } from "./checkoutRound";
 import { restartGame } from "./restartGame";
 import { kickPlayer } from "./kickPlayer";
 import { joinGame } from "./joinGame";
+import { updatePlayerName } from "./updatePlayerName";
 
 export const gameActions = {
   changeStage,
@@ -31,4 +32,5 @@ export const gameActions = {
   restartGame,
   kickPlayer,
   joinGame,
+  updatePlayerName,
 };

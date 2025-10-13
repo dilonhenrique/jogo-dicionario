@@ -24,7 +24,7 @@ type RoomChannelContextValue = {
   setUpdatePlayers: (fn: (playerData: Record<string, unknown>) => void) => void;
   setUpdateCurrentRound: (fn: () => void) => void;
   setUpdateVotes: (fn: (voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) => void;
-  setActivateGame: (fn: () => void) => void;
+  setStartGame: (fn: () => void) => void;
   kickPlayer: (playerId: string) => void;
 };
 
@@ -52,7 +52,7 @@ function RoomChannelProvider({ children, room }: Props) {
   const updatePlayersRef = useRef<((playerData: Record<string, unknown>) => void) | null>(null);
   const updateCurrentRoundRef = useRef<(() => void) | null>(null);
   const updateVotesRef = useRef<((voteData: Record<string, unknown>, eventType: 'INSERT' | 'UPDATE' | 'DELETE') => void) | null>(null);
-  const activateGameRef = useRef<(() => void) | null>(null);
+  const startGameRef = useRef<(() => void) | null>(null);
 
   const configs = room.configs as GameConfig;
   const amIConnected = user ? onlinePlayers.some(u => u.id === user.id) : false;
@@ -96,8 +96,7 @@ function RoomChannelProvider({ children, room }: Props) {
         "postgres_changes",
         { schema: 'public', event: 'INSERT', table: 'game_sessions', filter: `room_code=eq.${room.code}` },
         () => {
-          // Quando uma sessão de jogo é criada, ativa o GameContext
-          activateGameRef.current?.();
+          startGameRef.current?.();
           onGameStateChange();
         }
       )
@@ -185,8 +184,8 @@ function RoomChannelProvider({ children, room }: Props) {
     };
   }, [room.code, user, onGameStateChange, router, canIJoinTheRoom]);
 
-  const setActivateGameCallback = useCallback((fn: () => void) => {
-    activateGameRef.current = fn;
+  const setStartGameCallback = useCallback((fn: () => void) => {
+    startGameRef.current = fn;
   }, []);
 
   const setRefetchGameCallback = useCallback((fn: () => void) => {
@@ -236,10 +235,10 @@ function RoomChannelProvider({ children, room }: Props) {
       setUpdatePlayers: setUpdatePlayersCallback,
       setUpdateCurrentRound: setUpdateCurrentRoundCallback,
       setUpdateVotes: setUpdateVotesCallback,
-      setActivateGame: setActivateGameCallback,
+      setStartGame: setStartGameCallback,
       kickPlayer,
     }),
-    [room.code, hostId, channel, onlinePlayers, user, amIConnected, configs, lastEventTime, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, setActivateGameCallback, kickPlayer]
+    [room.code, hostId, channel, onlinePlayers, user, amIConnected, configs, lastEventTime, setRefetchGameCallback, setUpdateStageCallback, setUpdatePlayersCallback, setUpdateCurrentRoundCallback, setUpdateVotesCallback, setStartGameCallback, kickPlayer]
   );
 
   return <RoomChannelContext.Provider value={value}>{children}</RoomChannelContext.Provider>;

@@ -3,6 +3,7 @@ import PlayerChip from "./PlayerChip";
 import { sortByPoints } from "@/lib/utils/sortByPoints";
 import { getPositionColor } from "@/lib/utils/getPositionColor";
 import { Chip } from "@heroui/react";
+import UpdateNameButton from "./UpdateNameButton/UpdateNameButton";
 
 type Props = {
   players: GamePlayer[];
@@ -36,6 +37,8 @@ export default function Leaderboard({ players, disableLeaderColor, roundPoints }
           </li>
         );
       })}
+
+      <UpdateNameButton />
     </ul>
   );
 }

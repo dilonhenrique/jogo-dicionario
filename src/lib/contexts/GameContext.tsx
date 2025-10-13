@@ -29,7 +29,7 @@ function GameProvider({ children, roomCode }: Props) {
     setUpdatePlayers,
     setUpdateCurrentRound,
     setUpdateVotes,
-    setActivateGame,
+    setStartGame: setActivateGame,
     lastEventTime,
   } = roomChannel;
 

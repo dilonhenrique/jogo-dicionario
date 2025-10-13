@@ -6,6 +6,7 @@ import { Button } from "@heroui/react";
 import { Trash } from "lucide-react";
 import RemovePlayerModal from "../Host/RemovePlayerModal";
 import { useState } from "react";
+import UpdateNameButton from "./UpdateNameButton/UpdateNameButton";
 
 type Props = {
   players: Player[];
@@ -45,6 +46,8 @@ export function PlayerList({ players, onRemove }: Props) {
           </li>
         );
       })}
+
+      <UpdateNameButton />
 
       {onRemove && (
         <RemovePlayerModal
