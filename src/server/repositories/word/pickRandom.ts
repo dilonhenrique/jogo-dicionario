@@ -22,7 +22,6 @@ export default async function pickRandom(opts: Props): Promise<Word[]> {
     .innerJoin("word_scores as s", "s.word_id", "w.id")
     .selectAll("w")
     .where("w.difficulty", "in", difficulties)
-    .where("s.dislikes", "=", 0)
     .where("w.definition", "is not", null)
     .where("w.definition", "!=", "")
     .where("s.dislikes", "=", 0);
